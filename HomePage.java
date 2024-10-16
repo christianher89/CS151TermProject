@@ -16,7 +16,7 @@ scene.getStylesheets().add(getClass().getResource("application.css").toExternalF
 primary.setScene(scene);
 primary.show();
 try {
-	
+	fdkljdfklkllkdfgklgdflkgdflkgdflk
 } catch (Exception e) {
 e.printStackTrace();
 	}
