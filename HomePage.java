@@ -1,10 +1,12 @@
 package application;
 
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.scene.input.MouseEvent;
 
@@ -31,10 +33,17 @@ public class HomePage extends Application{
 	}
 
 	private void openAccountPage(Stage primary) {	
-		BorderPane ap = new BorderPane();
+		GridPane ap = new GridPane();
+		
+		TextField accName = new TextField();
+		TextField accBal = new TextField();
+		TextField accDate = new TextField();
 		
 		Button back = new Button("Home");
-		ap.setCenter(back);
+		ap.add(back, 0,  0);
+		ap.add(accName, 0, 3);
+		ap.add(accBal, 1, 3);
+		ap.add(accDate, 2, 3);
 		
 		back.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> backToHomePage(primary));
 		
