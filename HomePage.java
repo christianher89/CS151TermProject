@@ -14,7 +14,6 @@ public class HomePage extends Application{
 	private BorderPane mainPage = new BorderPane();
 	private Button homeBtn = new Button("Create an account");
 
-
 	@Override
 	public void start(Stage primary) {
 		try {
@@ -57,6 +56,6 @@ public class HomePage extends Application{
 	private void backToHomePage(Stage primary) {
 		HomePage hp = new HomePage();
 		hp.start(primary);
-	}
+  }
 
 }
