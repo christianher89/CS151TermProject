@@ -31,7 +31,7 @@ public class HomePage extends Application{
             content.getChildren().addAll(title, welcome, homeBtn);
             content.setAlignment(Pos.CENTER);
 
-            mainPage.setCenter(homeBtn);
+            mainPage.setCenter(content);
 
             homeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openAccountPage(primary));
 
