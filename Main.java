@@ -8,12 +8,12 @@ import javafx.scene.layout.BorderPane;
 
 public class Main extends Application {
 @Override
-public void start(Stage primaryStage) {
-HomePage hp = new HomePage();
-hp.start(primaryStage);
-}
+	public void start(Stage primaryStage) {
+		HomePage hp = new HomePage();
+		hp.start(primaryStage);
+	}
 
-public static void main(String[] args) {
-launch(args);
-}
+	public static void main(String[] args) {
+		launch(args);
+	}
 }
