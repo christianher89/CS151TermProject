@@ -36,7 +36,7 @@ public class HomePage extends Application{
 		
 		TextField accName = new TextField();
 		TextField accBal = new TextField();
-		TextField accDate = new TextField();
+
 		
 		Button back = new Button("Home");
 		ap.add(back, 0,  0);
