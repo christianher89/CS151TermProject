@@ -37,10 +37,6 @@ public class HomePage extends Application{
             VBox topContent = new VBox(10, welcome, title);
             topContent.setAlignment(Pos.TOP_CENTER);
             topContent.setPadding(new Insets(150, 0, 0, 0));
-          
-            VBox topContent = new VBox(10, welcome, title);
-            topContent.setAlignment(Pos.TOP_CENTER);
-            topContent.setPadding(new Insets(150, 0, 0, 0));
 
             pages.setTop(topContent);
             pages.setCenter(centerContent);
@@ -51,9 +47,6 @@ public class HomePage extends Application{
             Scene homeScene = new Scene(pages,1280,800);
             homeScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
           
-            primary.setScene(homeScene);
-            primary.show();
-
             primary.setScene(homeScene);
             primary.show();
 
@@ -106,17 +99,6 @@ public class HomePage extends Application{
         centerContent.setAlignment(Pos.TOP_CENTER);
         centerContent.setPadding(new Insets(194, 0, 0, 0));
 
-        VBox createButtonContainer = new VBox(create);
-        createButtonContainer.setAlignment(Pos.BOTTOM_CENTER);
-        createButtonContainer.setPadding(new Insets(0, 0, 100, 0));
-        
-        VBox homeButtonContainer = new VBox(back);
-        homeButtonContainer.setPadding(new Insets(0, 0, 0, 20));
-        
-        VBox centerContent = new VBox(175, title, createAccount);
-        centerContent.setAlignment(Pos.TOP_CENTER);
-        centerContent.setPadding(new Insets(194, 0, 0, 0));
-        
         VBox createButtonContainer = new VBox(create);
         createButtonContainer.setAlignment(Pos.BOTTOM_CENTER);
         createButtonContainer.setPadding(new Insets(0, 0, 100, 0));
