@@ -8,9 +8,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
-
 import java.io.FileNotFoundException;
-
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -28,7 +26,6 @@ public class HomePage extends Application{
     public void start(Stage primary) {
         try {
             Text welcome = new Text("Welcome to");
-
             title.setStyle("-fx-font-size: 50px; -fx-font-weight: bold;");
             welcome.setStyle("-fx-font-size: 25px;");
             homeBtn.setMinSize(150, 35);
@@ -36,11 +33,14 @@ public class HomePage extends Application{
             VBox centerContent = new VBox(homeBtn);
             centerContent.setAlignment(Pos.CENTER);
             centerContent.setPadding(new Insets(-100, 0, 0, 0));
-
+          
             VBox topContent = new VBox(10, welcome, title);
             topContent.setAlignment(Pos.TOP_CENTER);
             topContent.setPadding(new Insets(150, 0, 0, 0));
-
+          
+            VBox topContent = new VBox(10, welcome, title);
+            topContent.setAlignment(Pos.TOP_CENTER);
+            topContent.setPadding(new Insets(150, 0, 0, 0));
 
             pages.setTop(topContent);
             pages.setCenter(centerContent);
@@ -50,6 +50,9 @@ public class HomePage extends Application{
 
             Scene homeScene = new Scene(pages,1280,800);
             homeScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
+          
+            primary.setScene(homeScene);
+            primary.show();
 
             primary.setScene(homeScene);
             primary.show();
@@ -83,8 +86,13 @@ public class HomePage extends Application{
         ap.add(accBal, 1, 1);
         ap.add(accDate, 2, 1);
         ap.add(nameLabel, 0, 0);
+
         ap.add(date, 2, 0);
         ap.add(balance, 1, 0);
+
+
+        ap.add(date, 1, 0);
+        ap.add(balance, 2, 0);
 
         ap.setHgap(250);
         ap.setVgap(5);
@@ -101,13 +109,23 @@ public class HomePage extends Application{
         VBox createButtonContainer = new VBox(create);
         createButtonContainer.setAlignment(Pos.BOTTOM_CENTER);
         createButtonContainer.setPadding(new Insets(0, 0, 100, 0));
+        
+        VBox homeButtonContainer = new VBox(back);
+        homeButtonContainer.setPadding(new Insets(0, 0, 0, 20));
+        
+        VBox centerContent = new VBox(175, title, createAccount);
+        centerContent.setAlignment(Pos.TOP_CENTER);
+        centerContent.setPadding(new Insets(194, 0, 0, 0));
+        
+        VBox createButtonContainer = new VBox(create);
+        createButtonContainer.setAlignment(Pos.BOTTOM_CENTER);
+        createButtonContainer.setPadding(new Insets(0, 0, 100, 0));
 
         pages.setLeft(homeButtonContainer);
         pages.setTop(centerContent);
         pages.setCenter(ap);
         pages.setBottom(createButtonContainer);
 
-        
         back.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> backToHomePage(primary));
         
         //Gathers data from the 3 textFields, creates a new account with that data and stores it in Accounts.csv
@@ -124,6 +142,7 @@ public class HomePage extends Application{
 				e1.printStackTrace();
 			}
         });
+        back.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> backToHomePage(primary));
 
         primary.show();
 
