@@ -26,6 +26,7 @@ public class HomePage extends Application{
     public void start(Stage primary) {
         try {
             Text welcome = new Text("Welcome to");
+            
             title.setStyle("-fx-font-size: 50px; -fx-font-weight: bold;");
             welcome.setStyle("-fx-font-size: 25px;");
             homeBtn.setMinSize(150, 35);
@@ -37,18 +38,18 @@ public class HomePage extends Application{
             VBox topContent = new VBox(10, welcome, title);
             topContent.setAlignment(Pos.TOP_CENTER);
             topContent.setPadding(new Insets(150, 0, 0, 0));
-
+          
             pages.setTop(topContent);
             pages.setCenter(centerContent);
 
             homeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openAccountPage(primary));
-
 
             Scene homeScene = new Scene(pages,1280,800);
             homeScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
           
             primary.setScene(homeScene);
             primary.show();
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -97,7 +98,7 @@ public class HomePage extends Application{
         VBox createButtonContainer = new VBox(create);
         createButtonContainer.setAlignment(Pos.BOTTOM_CENTER);
         createButtonContainer.setPadding(new Insets(0, 0, 100, 0));
-
+        
         pages.setLeft(homeButtonContainer);
         pages.setTop(centerContent);
         pages.setCenter(ap);
@@ -119,7 +120,7 @@ public class HomePage extends Application{
 				e1.printStackTrace();
 			}
         });
-	    
+
         primary.show();
 
     }
