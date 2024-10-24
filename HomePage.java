@@ -79,13 +79,8 @@ public class HomePage extends Application{
         ap.add(accBal, 1, 1);
         ap.add(accDate, 2, 1);
         ap.add(nameLabel, 0, 0);
-
         ap.add(date, 2, 0);
         ap.add(balance, 1, 0);
-
-
-        ap.add(date, 1, 0);
-        ap.add(balance, 2, 0);
 
         ap.setHgap(250);
         ap.setVgap(5);
@@ -124,8 +119,7 @@ public class HomePage extends Application{
 				e1.printStackTrace();
 			}
         });
-        back.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> backToHomePage(primary));
-
+	    
         primary.show();
 
     }
