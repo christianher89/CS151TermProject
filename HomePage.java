@@ -17,7 +17,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.application.Application;
 import javafx.scene.Node;
-
+import java.text.DecimalFormat;
 import java.io.IOException;
 import java.util.List;
 import javafx.scene.Scene;
@@ -76,8 +76,12 @@ public class HomePage extends Application{
         TableColumn<Account, String> nameCol = new TableColumn<>("Account Name");
         nameCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getName()));
 
-        TableColumn<Account, Double> balanceCol = new TableColumn<>("Balance");
-        balanceCol.setCellValueFactory(data -> new SimpleDoubleProperty(data.getValue().getBalance()).asObject());
+        TableColumn<Account, String> balanceCol = new TableColumn<>("Balance");
+        balanceCol.setCellValueFactory(data -> {
+        	DecimalFormat df = new DecimalFormat("#,##0.00");
+        	String formattedBalance = df.format(data.getValue().getBalance());
+        	return new SimpleStringProperty(formattedBalance);
+        });
 
         TableColumn<Account, String> dateCol = new TableColumn<>("Opening Date");
         dateCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getOpenDate()));
