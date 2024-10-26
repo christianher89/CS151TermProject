@@ -100,7 +100,7 @@ public class HomePage extends Application{
         BorderPane accountPage = new BorderPane();
         accountPage.setCenter(table);
 
-        Button back = new Button("Button");
+        Button back = new Button("Home");
         back.setOnAction(e -> backToHomePage(primary));
 
         VBox bottomContent = new VBox(back);
