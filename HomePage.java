@@ -169,17 +169,22 @@ public class HomePage extends Application{
         	String name = accName.getText();
         	String openDate = accDate.getText();
             String balanceText = accBal.getText();
-
-            double bal;
-            try {
-            	bal = Double.parseDouble(balanceText);
-            } catch (NumberFormatException ex) {
-            	System.out.println("Invalid balance input. Please enter a numeric value.");
+            
+            if (name.isEmpty()) {
+            	System.out.println("Invalid account name input. Please enter your account name.");
             	return;
             }
             
             if (!openDate.matches("\\d{2}/\\d{2}/\\d{4}")) {
             	System.out.println("Invalid date format. Please use MM/dd/yyyy format.");
+            	return;
+            }
+            
+            double bal;
+            try {
+            	bal = Double.parseDouble(balanceText);
+            } catch (NumberFormatException ex) {
+            	System.out.println("Invalid balance input. Please enter a numeric value.");
             	return;
             }
             
