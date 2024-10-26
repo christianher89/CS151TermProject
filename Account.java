@@ -11,13 +11,13 @@ import java.util.*;
 public class Account {
 	private String accName = "";
     private double startBal = 0;
-    private String openDate = "";
+    private String openDate;
     private static ArrayList<Account> accountList = new ArrayList<Account>();
 
-    public Account (String name, double bal, String date) {
+    public Account (String name, String date, double bal) {
         accName = name;
-        startBal = bal;
         openDate = date;
+        startBal = bal;
     }
 
     public String getName() {
@@ -35,24 +35,23 @@ public class Account {
     	accountList.add(newAcc);
     	
         File accounts = new File("Accounts.csv");
-        if (!accounts.exists()) {
-        	accounts.createNewFile();
-        }
         PrintWriter out = new PrintWriter(accounts);
         
         for (Account a : accountList) {
-        	out.println(newAcc.getName() + "," + newAcc.getBalance() + "," + newAcc.getOpenDate());
+        	out.println(a.getName() + "," + a.getBalance() + "," + a.getOpenDate());
         }
         out.close();
 
     }
-    public static void appndData(Account newAcc) throws IOException{
+    
+    public static void appendData(Account newAcc) throws IOException{
         File accounts = new File("Account.csv");
         PrintWriter out = new PrintWriter(new FileOutputStream(accounts, true));
 
         out.println(newAcc.getName() + "," + newAcc.getBalance() + "," + newAcc.getOpenDate());
         out.close();
     }
+    
     public static List<Account> getAllAccounts() throws IOException{
         List<Account> accounts = new ArrayList<>();
         try(BufferedReader reader = new BufferedReader(new FileReader("Accounts.csv"))){
@@ -62,9 +61,9 @@ public class Account {
                 if(data.length == 3) {
                 	try {
                 		String name = data[0].trim();
-                		double balance = Double.parseDouble(data[1].trim());
                 		String date = data[2].trim();
-                		accounts.add(new Account(name, balance, date));
+                		double balance = Double.parseDouble(data[1].trim());
+                		accounts.add(new Account(name, date, balance));
                 	} catch (NumberFormatException e) {
                 		System.out.println("Skipping line due to number format error:" + line);
                 		e.printStackTrace();
