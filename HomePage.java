@@ -71,6 +71,7 @@ public class HomePage extends Application{
         }
     }
     
+    // Displays accounts in a TableView format, assigning the Name, Balance, and Date into their columns
     private void displayAccounts(Stage primary){
         TableView<Account> table = new TableView<>();
         TableColumn<Account, String> nameCol = new TableColumn<>("Account Name");
@@ -87,7 +88,7 @@ public class HomePage extends Application{
         dateCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getOpenDate()));
 
         table.getColumns().addAll(nameCol, balanceCol, dateCol);
-
+        
         try{
             List<Account> accounts = Account.getSortedAccountsByDate();
             ObservableList<Account> accountList = FXCollections.observableList(accounts);
@@ -115,6 +116,7 @@ public class HomePage extends Application{
 
     }
 
+    // Creates account page for creating and storing account information
     private void openAccountPage(Stage primary) {
         GridPane ap = new GridPane();
 
@@ -165,6 +167,7 @@ public class HomePage extends Application{
 
         back.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> backToHomePage(primary));
         
+        // Create button makes sure all inputs are filled in and creates a new Account
         create.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
         	String name = accName.getText();
         	String openDate = accDate.getText();
