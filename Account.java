@@ -44,14 +44,6 @@ public class Account {
 
     }
     
-    public static void appendData(Account newAcc) throws IOException{
-        File accounts = new File("Account.csv");
-        PrintWriter out = new PrintWriter(new FileOutputStream(accounts, true));
-
-        out.println(newAcc.getName() + "," + newAcc.getBalance() + "," + newAcc.getOpenDate());
-        out.close();
-    }
-    
     public static List<Account> getAllAccounts() throws IOException{
         List<Account> accounts = new ArrayList<>();
         try(BufferedReader reader = new BufferedReader(new FileReader("Accounts.csv"))){
@@ -75,9 +67,27 @@ public class Account {
         return accounts;
     }
 
-    public static List<Account> getSortedAccountsByDate() throws IOException{
+    public static List<Account> getSortedAccountsByDate() throws IOException {
         List<Account> accounts = getAllAccounts();
-        accounts.sort(Comparator.comparing(Account::getOpenDate).reversed());
+        
+        // Use Collections.sort with a custom comparator for descending order
+        Collections.sort(accounts, new Comparator<Account>() {
+            @Override
+            public int compare(Account a1, Account a2) {
+                String[] date1 = a1.getOpenDate().split("/");
+                String[] date2 = a2.getOpenDate().split("/");
+                
+                // Compare year first, then month, then day in reverse order
+                int yearCompare = Integer.compare(Integer.parseInt(date2[2]), Integer.parseInt(date1[2]));
+                if (yearCompare != 0) return yearCompare;
+                
+                int monthCompare = Integer.compare(Integer.parseInt(date2[0]), Integer.parseInt(date1[0]));
+                if (monthCompare != 0) return monthCompare;
+                
+                return Integer.compare(Integer.parseInt(date2[1]), Integer.parseInt(date1[1])); // Compare days
+            }
+        });
+
         return accounts;
     }
 }
