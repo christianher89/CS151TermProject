@@ -95,7 +95,7 @@ public class HomePage extends Application{
             table.setItems(accountList);
         }
         catch(IOException e){
-            e.printStackTrace();
+            System.out.println("No accounts stored yet!");
         }
 
         BorderPane accountPage = new BorderPane();
