@@ -1,6 +1,7 @@
 package application;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.FileOutputStream;
@@ -23,9 +24,11 @@ public class Account {
     public String getName() {
         return accName;
     }
+    
     public double getBalance(){
         return startBal;
     }
+    
     public String getOpenDate(){
         return openDate;
     }
@@ -34,7 +37,6 @@ public class Account {
         // TODO Auto-generated method stub
     	accountList.add(newAcc);
     	
-    	// Creates Accounts.csv file and prints every account in the accountList to the file
         File accounts = new File("Accounts.csv");
         PrintWriter out = new PrintWriter(accounts);
         
@@ -47,14 +49,11 @@ public class Account {
     
     public static List<Account> getAllAccounts() throws IOException{
         List<Account> accounts = new ArrayList<>();
-        
-        // Uses BufferedReader instead of Scanner to read the Accounts.csv file
         try(BufferedReader reader = new BufferedReader(new FileReader("Accounts.csv"))){
         	String line = "";
             while((line = reader.readLine()) != null){
                 String[] data = line.split(",");
                 if(data.length == 3) {
-                	// Splits each data into variables and stores them as new accounts in an accountList
                 	try {
                 		String name = data[0].trim();
                 		String date = data[2].trim();
@@ -65,6 +64,7 @@ public class Account {
                 		e.printStackTrace();
                 	}
                 }
+
             }
         }
         return accounts;

@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.input.MouseEvent;
 import javafx.geometry.Pos;
@@ -30,6 +31,7 @@ public class HomePage extends Application{
     private BorderPane pages = new BorderPane();
     private Button homeBtn = new Button("Create an account");
     private Button viewAccountsBtn = new Button("View Accounts");
+    private Button transactionTypeBtn = new Button("Create Transaction Type");
     private Text title = new Text("PennyPal");
 
     @Override
@@ -41,8 +43,9 @@ public class HomePage extends Application{
             welcome.setStyle("-fx-font-size: 25px;");
             homeBtn.setMinSize(150, 35);
             viewAccountsBtn.setMinSize(150, 35);
+            transactionTypeBtn.setMinSize(150, 35);
 
-            VBox centerContent = new VBox(10, homeBtn, viewAccountsBtn);
+            VBox centerContent = new VBox(10, homeBtn, viewAccountsBtn, transactionTypeBtn);
             centerContent.setAlignment(Pos.CENTER);
             centerContent.setPadding(new Insets(-100, 0, 0, 0));
             
@@ -50,15 +53,13 @@ public class HomePage extends Application{
             topContent.setAlignment(Pos.TOP_CENTER);
             topContent.setPadding(new Insets(150, 0, 0, 0));
             
-
             pages.setTop(topContent);
             pages.setCenter(centerContent);
             
-            homeBtn.setOnAction(e -> openAccountPage(primary));
-            viewAccountsBtn.setOnAction(e -> displayAccounts(primary));
 
+            viewAccountsBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> displayAccounts(primary));
             homeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openAccountPage(primary));
-
+            transactionTypeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openTransactionTypePage(primary));
 
             Scene homeScene = new Scene(pages,1280,800);
             homeScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
@@ -71,7 +72,6 @@ public class HomePage extends Application{
         }
     }
     
-    // Displays accounts in a TableView format, assigning the Name, Balance, and Date into their columns
     private void displayAccounts(Stage primary){
         TableView<Account> table = new TableView<>();
         TableColumn<Account, String> nameCol = new TableColumn<>("Account Name");
@@ -88,14 +88,14 @@ public class HomePage extends Application{
         dateCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getOpenDate()));
 
         table.getColumns().addAll(nameCol, balanceCol, dateCol);
-        
+
         try{
             List<Account> accounts = Account.getSortedAccountsByDate();
             ObservableList<Account> accountList = FXCollections.observableList(accounts);
             table.setItems(accountList);
         }
         catch(IOException e){
-            System.out.println("No accounts stored yet!");
+            System.out.println("No accounts recorded yet!");
         }
 
         BorderPane accountPage = new BorderPane();
@@ -116,7 +116,6 @@ public class HomePage extends Application{
 
     }
 
-    // Creates account page for creating and storing account information
     private void openAccountPage(Stage primary) {
         GridPane ap = new GridPane();
 
@@ -129,6 +128,7 @@ public class HomePage extends Application{
         Label balanceLabel = new Label("Opening balance:");
         Button back = new Button("Home");
         Button create = new Button("Create");
+        Label warning = new Label();
         create.setMinSize(100, 30);
         
         nameLabel.setStyle("-fx-font-size: 15;");
@@ -136,6 +136,8 @@ public class HomePage extends Application{
         balanceLabel.setStyle("-fx-font-size: 15;");
         createAccount.setStyle("-fx-font-size: 30; -fx-font-weight: bold;");
         title.setStyle("-fx-font-size: 50px; -fx-font-weight: bold;");
+        warning.setStyle("-fx-font-size: 15; -fx-font-weight: bold;");
+        warning.setTextFill(Color.RED);
         
         ap.add(accName, 0, 1);
         ap.add(accDate, 1, 1);
@@ -149,8 +151,6 @@ public class HomePage extends Application{
         ap.setAlignment(Pos.BOTTOM_CENTER);
         ap.setPadding(new Insets(0, 70, 70, 0));
         
-        VBox homeButtonContainer = new VBox(back);
-        homeButtonContainer.setPadding(new Insets(0, 0, 0, 20));
         
         VBox centerContent = new VBox(175, title, createAccount);
         centerContent.setAlignment(Pos.TOP_CENTER);
@@ -159,27 +159,28 @@ public class HomePage extends Application{
         VBox createButtonContainer = new VBox(create);
         createButtonContainer.setAlignment(Pos.BOTTOM_CENTER);
         createButtonContainer.setPadding(new Insets(0, 0, 100, 0));
-        
-        pages.setLeft(homeButtonContainer);
+        createButtonContainer.getChildren().add(warning);
+        createButtonContainer.getChildren().add(back);
+        createButtonContainer.setSpacing(25);
+  
         pages.setTop(centerContent);
         pages.setCenter(ap);
         pages.setBottom(createButtonContainer);
 
         back.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> backToHomePage(primary));
         
-        // Create button makes sure all inputs are filled in and creates a new Account
         create.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
         	String name = accName.getText();
         	String openDate = accDate.getText();
             String balanceText = accBal.getText();
             
             if (name.isEmpty()) {
-            	System.out.println("Invalid account name input. Please enter your account name.");
+            	warning.setText("Please insert name");
             	return;
             }
             
             if (!openDate.matches("\\d{2}/\\d{2}/\\d{4}")) {
-            	System.out.println("Invalid date format. Please use MM/dd/yyyy format.");
+            	warning.setText("Invalid date format. Please use MM/dd/yyyy format.");
             	return;
             }
             
@@ -187,11 +188,13 @@ public class HomePage extends Application{
             try {
             	bal = Double.parseDouble(balanceText);
             } catch (NumberFormatException ex) {
-            	System.out.println("Invalid balance input. Please enter a numeric value.");
+            	warning.setText("Invalid balance input. Please enter a numeric value.");
             	return;
             }
             
-            Account newAcc  = new Account(name, openDate, bal);
+            Account newAcc = new Account(name, openDate, bal);
+            warning.setTextFill(Color.GREEN);
+            warning.setText("New account: " + newAcc.getName() + " created successfully.");
             try {
                 Account.storeData(newAcc);
             } catch (IOException e1) {
@@ -208,4 +211,49 @@ public class HomePage extends Application{
         hp.start(primary);
     }
 
+    private void openTransactionTypePage(Stage primary) {
+    	GridPane ttp = new GridPane();
+    	
+    	Text createTT = new Text("Please create new transaction type");
+    	Label transTypeLabel = new Label("Enter Transaction type:");
+        TextField transTypeName = new TextField();
+        Button createTTBtn = new Button("Create");
+        Button back = new Button("Home");
+        
+        createTT.setStyle("-fx-font-size: 30; -fx-font-weight: bold;");
+        title.setStyle("-fx-font-size: 50px; -fx-font-weight: bold;");
+        transTypeLabel.setStyle("-fx-font-size: 15;");
+        
+        
+        ttp.add(transTypeName, 1, 1);
+        ttp.add(transTypeLabel, 1, 0);
+        
+        ttp.setHgap(75);
+        ttp.setVgap(5);
+        ttp.setAlignment(Pos.BOTTOM_CENTER);
+        ttp.setPadding(new Insets(0, 70, 70, 0));
+        
+        VBox centerContent = new VBox(175, title, createTT);
+        centerContent.setAlignment(Pos.TOP_CENTER);
+        centerContent.setPadding(new Insets(194, 0, 0, 0));
+        
+        VBox createButtonContainer = new VBox(createTTBtn);
+        createButtonContainer.setAlignment(Pos.BOTTOM_CENTER);
+        createButtonContainer.setPadding(new Insets(0, 0, 100, 0));
+        createButtonContainer.getChildren().add(back);
+        createButtonContainer.setSpacing(25);
+        
+        pages.setCenter(ttp);
+        pages.setTop(centerContent);
+        pages.setBottom(createButtonContainer);
+        
+        createTTBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+        	
+        });
+        
+        back.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> backToHomePage(primary));
+        
+        primary.show();
+        
+    }
 }
