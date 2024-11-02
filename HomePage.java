@@ -20,6 +20,9 @@ import javafx.application.Application;
 import javafx.scene.Node;
 import java.text.DecimalFormat;
 import java.io.IOException;
+import java.io.FileNotFoundException;
+import javafx.application.Application;
+import javafx.scene.Node;
 import java.util.List;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -126,7 +129,7 @@ public class HomePage extends Application{
         Label nameLabel = new Label("Account name:");
         Label dateLabel = new Label("Opening date:");
         Label balanceLabel = new Label("Opening balance:");
-        Button back = new Button("Home");
+        Button home = new Button("Home");
         Button create = new Button("Create");
         Label warning = new Label();
         create.setMinSize(100, 30);
@@ -156,19 +159,17 @@ public class HomePage extends Application{
         centerContent.setAlignment(Pos.TOP_CENTER);
         centerContent.setPadding(new Insets(194, 0, 0, 0));
         
-        VBox createButtonContainer = new VBox(create);
+        VBox createButtonContainer = new VBox(25, warning, create, home);
         createButtonContainer.setAlignment(Pos.BOTTOM_CENTER);
         createButtonContainer.setPadding(new Insets(0, 0, 100, 0));
-        createButtonContainer.getChildren().add(warning);
-        createButtonContainer.getChildren().add(back);
-        createButtonContainer.setSpacing(25);
   
         pages.setTop(centerContent);
         pages.setCenter(ap);
         pages.setBottom(createButtonContainer);
 
-        back.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> backToHomePage(primary));
+        home.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> backToHomePage(primary));
         
+        // Gathers data from the 3 text fields, creates a new account with that data and stores it in Accounts.csv
         create.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
         	String name = accName.getText();
         	String openDate = accDate.getText();
@@ -216,13 +217,17 @@ public class HomePage extends Application{
     	
     	Text createTT = new Text("Please create new transaction type");
     	Label transTypeLabel = new Label("Enter Transaction type:");
+    	
         TextField transTypeName = new TextField();
         Button createTTBtn = new Button("Create");
         Button back = new Button("Home");
+        Label warning = new Label();
         
         createTT.setStyle("-fx-font-size: 30; -fx-font-weight: bold;");
         title.setStyle("-fx-font-size: 50px; -fx-font-weight: bold;");
         transTypeLabel.setStyle("-fx-font-size: 15;");
+        warning.setStyle("-fx-font-size: 15; -fx-font-weight: bold;");
+        warning.setTextFill(Color.RED);
         
         
         ttp.add(transTypeName, 1, 1);
@@ -233,21 +238,37 @@ public class HomePage extends Application{
         ttp.setAlignment(Pos.BOTTOM_CENTER);
         ttp.setPadding(new Insets(0, 70, 70, 0));
         
-        VBox centerContent = new VBox(175, title, createTT);
+        VBox centerContent = new VBox(115, title, createTT);
         centerContent.setAlignment(Pos.TOP_CENTER);
         centerContent.setPadding(new Insets(194, 0, 0, 0));
         
-        VBox createButtonContainer = new VBox(createTTBtn);
+        VBox createButtonContainer = new VBox(25, warning, createTTBtn, back);
         createButtonContainer.setAlignment(Pos.BOTTOM_CENTER);
         createButtonContainer.setPadding(new Insets(0, 0, 100, 0));
-        createButtonContainer.getChildren().add(back);
-        createButtonContainer.setSpacing(25);
         
         pages.setCenter(ttp);
         pages.setTop(centerContent);
         pages.setBottom(createButtonContainer);
         
         createTTBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+        	String typeName = transTypeName.getText().trim();
+
+            if(typeName.isEmpty()){
+                warning.setText("Please enter a transaction type name.");
+                return;
+
+            }
+            try{
+                TransactionType newType = new TransactionType(typeName);
+                TransactionType.storeTransactionType(newType);
+                warning.setTextFill(Color.GREEN);
+                warning.setText("Transaction type '" + typeName + "' create successfully.");
+
+            }
+            catch(IOException ex){
+                warning.setText("Error storing transaction type. PLease try again");
+                ex.printStackTrace();
+            }
         	
         });
         
