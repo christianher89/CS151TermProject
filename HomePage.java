@@ -13,14 +13,20 @@ import javafx.scene.input.MouseEvent;
 import javafx.geometry.Pos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.application.Application;
 import javafx.scene.Node;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.io.IOException;
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+
 import javafx.application.Application;
 import javafx.scene.Node;
 import java.util.List;
@@ -29,12 +35,14 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.scene.input.MouseEvent;
+import java.util.*;
 
 public class HomePage extends Application{
     private BorderPane pages = new BorderPane();
     private Button homeBtn = new Button("Create an account");
     private Button viewAccountsBtn = new Button("View Accounts");
     private Button transactionTypeBtn = new Button("Create Transaction Type");
+    private Button transactionsBtn = new Button("Create new Transactions");
     private Text title = new Text("PennyPal");
 
     @Override
@@ -47,8 +55,9 @@ public class HomePage extends Application{
             homeBtn.setMinSize(150, 35);
             viewAccountsBtn.setMinSize(150, 35);
             transactionTypeBtn.setMinSize(150, 35);
+            transactionsBtn.setMinSize(150, 35);
 
-            VBox centerContent = new VBox(10, homeBtn, viewAccountsBtn, transactionTypeBtn);
+            VBox centerContent = new VBox(15, homeBtn, viewAccountsBtn, transactionTypeBtn, transactionsBtn);
             centerContent.setAlignment(Pos.CENTER);
             centerContent.setPadding(new Insets(-100, 0, 0, 0));
             
@@ -63,6 +72,7 @@ public class HomePage extends Application{
             viewAccountsBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> displayAccounts(primary));
             homeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openAccountPage(primary));
             transactionTypeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openTransactionTypePage(primary));
+            transactionsBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openTransactionsPage(primary));
 
             Scene homeScene = new Scene(pages,1280,800);
             homeScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
@@ -193,11 +203,16 @@ public class HomePage extends Application{
             	return;
             }
             
-            Account newAcc = new Account(name, openDate, bal);
-            warning.setTextFill(Color.GREEN);
-            warning.setText("New account: " + newAcc.getName() + " created successfully.");
             try {
+            	Account newAcc = new Account(name, openDate, bal);
+                warning.setTextFill(Color.GREEN);
+                warning.setText("New account: " + newAcc.getName() + " created successfully.");
                 Account.storeData(newAcc);
+                
+                accName.clear();
+                accDate.clear();
+                accBal.clear();
+                
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -258,11 +273,14 @@ public class HomePage extends Application{
                 return;
 
             }
+            
             try{
                 TransactionType newType = new TransactionType(typeName);
                 TransactionType.storeTransactionType(newType);
                 warning.setTextFill(Color.GREEN);
                 warning.setText("Transaction type '" + typeName + "' create successfully.");
+                
+                transTypeName.clear();
 
             }
             catch(IOException ex){
@@ -276,5 +294,160 @@ public class HomePage extends Application{
         
         primary.show();
         
+    }
+    
+    private void openTransactionsPage(Stage primary) {
+        GridPane transactionPane = new GridPane();
+
+        Text createTransactionText = new Text("Create New Transaction");
+
+        Label accountLabel = new Label("Select Account:");
+        ComboBox<String> accountComboBox = new ComboBox<>();
+        ArrayList<String> accounts = CSVUtils.readAccountsFromCSV("accounts.csv");
+        accountComboBox.getItems().addAll(accounts);
+        accountComboBox.setValue(accounts.isEmpty() ? "" : accounts.get(0)); 
+
+        Label transTypeLabel = new Label("Select Transaction Type:");
+        ComboBox<String> transTypeComboBox = new ComboBox<>();
+        ArrayList<String> transactionTypes = CSVUtils.readTransactionTypesFromCSV("transactionTypes.csv");
+        transTypeComboBox.getItems().addAll(transactionTypes);
+        transTypeComboBox.setValue(transactionTypes.isEmpty() ? "" : transactionTypes.get(0)); 
+
+        Label transDateLabel = new Label("Transaction Date:");
+        DatePicker transDatePicker = new DatePicker(LocalDate.now()); 
+
+        Label transDescLabel = new Label("Enter Description:");
+        TextField transDescField = new TextField();
+
+        Label paymentLabel = new Label("Payment Amount:");
+        TextField paymentField = new TextField();
+
+        Label depositLabel = new Label("Deposit Amount:");
+        TextField depositField = new TextField();
+
+        Button createTransactionBtn = new Button("Create");
+        Button backBtn = new Button("Home");
+
+        Label transactionWarning = new Label();
+        transactionWarning.setStyle("-fx-font-size: 15; -fx-font-weight: bold;");
+        transactionWarning.setTextFill(Color.RED);
+
+        createTransactionText.setStyle("-fx-font-size: 30; -fx-font-weight: bold;");
+        title.setStyle("-fx-font-size: 50px; -fx-font-weight: bold;");
+
+        transactionPane.add(accountLabel, 0, 0);
+        transactionPane.add(accountComboBox, 1, 0);
+        transactionPane.add(transTypeLabel, 0, 1);
+        transactionPane.add(transTypeComboBox, 1, 1);
+        transactionPane.add(transDateLabel, 0, 2);
+        transactionPane.add(transDatePicker, 1, 2);
+        transactionPane.add(transDescLabel, 0, 3);
+        transactionPane.add(transDescField, 1, 3);
+        transactionPane.add(paymentLabel, 0, 4);
+        transactionPane.add(paymentField, 1, 4);
+        transactionPane.add(depositLabel, 0, 5);
+        transactionPane.add(depositField, 1, 5);
+
+        transactionPane.setHgap(75);
+        transactionPane.setVgap(5);
+        transactionPane.setAlignment(Pos.BOTTOM_CENTER);
+        transactionPane.setPadding(new Insets(0, 70, 70, 0));
+
+        VBox centerContent = new VBox(115, title, createTransactionText);
+        centerContent.setAlignment(Pos.TOP_CENTER);
+        centerContent.setPadding(new Insets(194, 0, 0, 0));
+
+        VBox createButtonContainer = new VBox(25, transactionWarning, createTransactionBtn, backBtn);
+        createButtonContainer.setAlignment(Pos.BOTTOM_CENTER);
+        createButtonContainer.setPadding(new Insets(0, 0, 100, 0));
+
+        pages.setCenter(transactionPane);
+        pages.setTop(centerContent);
+        pages.setBottom(createButtonContainer);
+
+        createTransactionBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+            String description = transDescField.getText().trim();
+            String paymentText = paymentField.getText().trim();
+            String depositText = depositField.getText().trim();
+
+            if (description.isEmpty() || 
+                (paymentText.isEmpty() && depositText.isEmpty())) {
+                transactionWarning.setText("Please fill in the required fields.");
+                return;
+            }
+
+            double payment = 0.0;
+            double deposit = 0.0;
+
+            try {
+                if (!paymentText.isEmpty()) {
+                    payment = Double.parseDouble(paymentText);
+                }
+                if (!depositText.isEmpty()) {
+                    deposit = Double.parseDouble(depositText);
+                }
+            } catch (NumberFormatException ex) {
+                transactionWarning.setText("Please enter valid numbers for Payment and Deposit amounts.");
+                return;
+            }
+
+            Transaction newTransaction = new Transaction(
+                accountComboBox.getValue(),
+                transTypeComboBox.getValue(),
+                transDatePicker.getValue(),
+                description,
+                payment,
+                deposit
+            );
+
+            try {
+                Transaction.storeTransaction(newTransaction);
+                transactionWarning.setTextFill(Color.GREEN);
+                transactionWarning.setText("Transaction created successfully.");
+
+                transDescField.clear();
+                paymentField.clear();
+                depositField.clear();
+
+            } catch (IOException ex) {
+                transactionWarning.setText("Error storing transaction. Please try again.");
+                ex.printStackTrace();
+            }
+        });
+
+        backBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> backToHomePage(primary));
+
+        primary.show();
+    }
+    
+    public class CSVUtils {
+    	public static ArrayList<String> readAccountsFromCSV(String filename) {
+    	    ArrayList<String> accounts = new ArrayList<>();
+    	    try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+    	        String line;
+    	        while ((line = br.readLine()) != null) {
+    	            String[] values = line.split(","); 
+    	            if (values.length > 0) {
+    	                accounts.add(values[0].trim()); 
+    	            }
+    	        }
+    	    } catch (IOException e) {
+    	        e.printStackTrace();
+    	    }
+    	    return accounts;
+    	}
+
+        public static ArrayList<String> readTransactionTypesFromCSV(String filename) {
+            ArrayList<String> transactionTypes = new ArrayList<>();
+            try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    transactionTypes.add(line.trim()); 
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return transactionTypes;
+        }
     }
 }
