@@ -2,6 +2,7 @@ package application;
 
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,6 +18,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.application.Application;
 import javafx.scene.Node;
@@ -43,6 +45,9 @@ public class HomePage extends Application{
     private Button viewAccountsBtn = new Button("View Accounts");
     private Button transactionTypeBtn = new Button("Create Transaction Type");
     private Button transactionsBtn = new Button("Create new Transactions");
+    private Button scheduleTransactionBtn = new Button("Schedule Transaction");
+    private Button viewScheduledTransactionsBtn = new Button("View All Scheduled Transactions");
+    private Button viewTransactionsBtn = new Button("View all Transactions");
     private Text title = new Text("PennyPal");
 
     @Override
@@ -57,7 +62,7 @@ public class HomePage extends Application{
             transactionTypeBtn.setMinSize(150, 35);
             transactionsBtn.setMinSize(150, 35);
 
-            VBox centerContent = new VBox(15, homeBtn, viewAccountsBtn, transactionTypeBtn, transactionsBtn);
+            VBox centerContent = new VBox(15, homeBtn, viewAccountsBtn, transactionTypeBtn, transactionsBtn, scheduleTransactionBtn, viewTransactionsBtn, viewScheduledTransactionsBtn);
             centerContent.setAlignment(Pos.CENTER);
             centerContent.setPadding(new Insets(-100, 0, 0, 0));
             
@@ -73,6 +78,9 @@ public class HomePage extends Application{
             homeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openAccountPage(primary));
             transactionTypeBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openTransactionTypePage(primary));
             transactionsBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openTransactionsPage(primary));
+            scheduleTransactionBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openScheduleTransactionPage(primary));
+            viewTransactionsBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> displayTransactions(primary));
+            viewScheduledTransactionsBtn.setOnAction(e -> displayScheduledTransactions(primary));
 
             Scene homeScene = new Scene(pages,1280,800);
             homeScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
@@ -419,6 +427,300 @@ public class HomePage extends Application{
 
         primary.show();
     }
+    
+    private void openScheduleTransactionPage(Stage primary) {
+        // Create the main layout container
+        GridPane schedulePane = new GridPane();
+
+        // Page title and labels
+        Text scheduleTransactionText = new Text("Schedule a New Transaction");
+
+        // Schedule Name Field
+        Label scheduleNameLabel = new Label("Schedule Name:");
+        TextField scheduleNameField = new TextField();
+        scheduleNameField.setPromptText("Enter schedule name (e.g., Rent, Mortgage)");
+
+        // Account Selection
+        Label accountLabel = new Label("Select Account:");
+        ComboBox<String> accountComboBox = new ComboBox<>();
+        ArrayList<String> accounts = CSVUtils.readAccountsFromCSV("accounts.csv");
+        accountComboBox.getItems().addAll(accounts);
+        accountComboBox.setValue(accounts.isEmpty() ? "" : accounts.get(0)); 
+
+        // Transaction Type Selection
+        Label transTypeLabel = new Label("Select Transaction Type:");
+        ComboBox<String> transTypeComboBox = new ComboBox<>();
+        ArrayList<String> transactionTypes = CSVUtils.readTransactionTypesFromCSV("transactionTypes.csv");
+        transTypeComboBox.getItems().addAll(transactionTypes);
+        transTypeComboBox.setValue(transactionTypes.isEmpty() ? "" : transactionTypes.get(0)); 
+
+        // Frequency Field (hard-coded to Monthly)
+        Label frequencyLabel = new Label("Frequency:");
+        ComboBox<String> frequencyComboBox = new ComboBox<>();
+        frequencyComboBox.getItems().add("Monthly");
+        frequencyComboBox.setValue("Monthly");
+
+        // Due Date Field
+        Label dueDateLabel = new Label("Due Date (Day of Month):");
+        TextField dueDateField = new TextField();
+        dueDateField.setPromptText("Enter day of month (e.g., 15, 30)");
+
+        // Payment Amount Field
+        Label paymentLabel = new Label("Payment Amount:");
+        TextField paymentField = new TextField();
+        paymentField.setPromptText("Enter payment amount");
+
+        // Button to save the schedule
+        Button scheduleTransactionBtn = new Button("Schedule Transaction");
+        Button backBtn = new Button("Back to Home");
+
+        // Label to display warnings or success messages
+        Label scheduleWarning = new Label();
+        scheduleWarning.setStyle("-fx-font-size: 15; -fx-font-weight: bold;");
+        scheduleWarning.setTextFill(Color.RED);
+
+        // Layout setup
+        scheduleTransactionText.setStyle("-fx-font-size: 30; -fx-font-weight: bold;");
+        schedulePane.add(scheduleNameLabel, 0, 0);
+        schedulePane.add(scheduleNameField, 1, 0);
+        schedulePane.add(accountLabel, 0, 1);
+        schedulePane.add(accountComboBox, 1, 1);
+        schedulePane.add(transTypeLabel, 0, 2);
+        schedulePane.add(transTypeComboBox, 1, 2);
+        schedulePane.add(frequencyLabel, 0, 3);
+        schedulePane.add(frequencyComboBox, 1, 3);
+        schedulePane.add(dueDateLabel, 0, 4);
+        schedulePane.add(dueDateField, 1, 4);
+        schedulePane.add(paymentLabel, 0, 5);
+        schedulePane.add(paymentField, 1, 5);
+
+        schedulePane.setHgap(10);
+        schedulePane.setVgap(10);
+        schedulePane.setPadding(new Insets(10, 10, 10, 10));
+
+        VBox buttonContainer = new VBox(20, scheduleWarning, scheduleTransactionBtn, backBtn);
+        buttonContainer.setAlignment(Pos.BOTTOM_CENTER);
+        buttonContainer.setPadding(new Insets(10, 0, 20, 0));
+
+        // Add components to the scene
+        VBox centerContent = new VBox(20, scheduleTransactionText);
+        centerContent.setAlignment(Pos.TOP_CENTER);
+        centerContent.setPadding(new Insets(20, 0, 0, 0));
+
+        schedulePane.setAlignment(Pos.CENTER);
+        VBox mainContent = new VBox(30, centerContent, schedulePane, buttonContainer);
+        mainContent.setAlignment(Pos.CENTER);
+
+        // Page setup
+        pages.setCenter(mainContent);
+
+        // Back button event handler
+        backBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> backToHomePage(primary));
+
+        // Schedule Transaction button event handler
+        scheduleTransactionBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+            // Validate inputs
+            String scheduleName = scheduleNameField.getText().trim();
+            String dueDateText = dueDateField.getText().trim();
+            String paymentText = paymentField.getText().trim();
+
+            if (scheduleName.isEmpty() || dueDateText.isEmpty() || paymentText.isEmpty()) {
+                scheduleWarning.setText("All fields are required.");
+                return;
+            }
+
+            /* Check for duplicate schedule names
+            ArrayList<String> existingSchedules = CSVUtils.readSchedulesFromCSV("schedules.csv");
+            if (existingSchedules.contains(scheduleName)) {
+                scheduleWarning.setText("Schedule name already exists.");
+                return;
+            } */
+
+            // Validate the payment and due date fields
+            double paymentAmount = 0.0;
+            int dueDate = 0;
+
+            // Validate payment amount
+            try {
+                paymentAmount = Double.parseDouble(paymentText);
+            } catch (NumberFormatException ex) {
+                scheduleWarning.setText("Please enter a valid number for Payment Amount.");
+                return;
+            }
+
+            // Validate due date (ensure it's an integer)
+            try {
+                dueDate = Integer.parseInt(dueDateText);
+            } catch (NumberFormatException ex) {
+                scheduleWarning.setText("Please enter a valid integer for Due Date.");
+                return;
+            }
+
+            // Create the new scheduled transaction
+            ScheduledTransaction scheduledTransaction = new ScheduledTransaction(
+                scheduleName,
+                accountComboBox.getValue(),
+                transTypeComboBox.getValue(),
+                dueDate,
+                paymentAmount
+            );
+
+            // Store the transaction
+            try {
+                ScheduledTransaction.storeScheduledTransaction(scheduleName, accountComboBox.getValue(),transTypeComboBox.getValue(),dueDate,paymentAmount);
+                scheduleWarning.setTextFill(Color.GREEN);
+                scheduleWarning.setText("Transaction scheduled successfully!");
+
+                // Clear the fields after successful scheduling
+                scheduleNameField.clear();
+                dueDateField.clear();
+                paymentField.clear();
+            } catch (IOException ex) {
+                scheduleWarning.setText("Error storing transaction. Please try again.");
+            }
+        });
+
+        // Show the page
+        primary.show();
+    }
+
+
+    private void displayTransactions(Stage primary) {
+        TableView<Transaction> table = new TableView<>();
+
+        // Column for Account
+        TableColumn<Transaction, String> accountCol = new TableColumn<>("Account");
+        accountCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getAccount()));
+
+        // Column for Transaction Type
+        TableColumn<Transaction, String> transTypeCol = new TableColumn<>("Transaction Type");
+        transTypeCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTransactionType()));
+
+        // Column for Transaction Date
+        TableColumn<Transaction, String> dateCol = new TableColumn<>("Transaction Date");
+        dateCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTransactionDate().toString()));
+
+        // Column for Description
+        TableColumn<Transaction, String> descCol = new TableColumn<>("Description");
+        descCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDescription()));
+
+        // Column for Payment Amount
+        TableColumn<Transaction, Double> paymentCol = new TableColumn<>("Payment Amount");
+        paymentCol.setCellValueFactory(data -> new SimpleDoubleProperty(data.getValue().getPaymentAmount()).asObject());
+
+        // Column for Deposit Amount
+        TableColumn<Transaction, Double> depositCol = new TableColumn<>("Deposit Amount");
+        depositCol.setCellValueFactory(data -> new SimpleDoubleProperty(data.getValue().getDepositAmount()).asObject());
+
+        // Adding columns to the table
+        table.getColumns().addAll(accountCol, transTypeCol, dateCol, descCol, paymentCol, depositCol);
+
+        // Fetch the transactions and populate the table
+        try {
+            List<Transaction> transactions = Transaction.getAllTransactions();
+            ObservableList<Transaction> transactionList = FXCollections.observableList(transactions);
+            table.setItems(transactionList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Sort the table by Transaction Date (descending)
+        dateCol.setSortType(TableColumn.SortType.DESCENDING);
+        table.getSortOrder().add(dateCol);
+
+        // Set up the layout and display the page
+        BorderPane transactionPage = new BorderPane();
+        transactionPage.setCenter(table);
+
+        // Back button to go to the home page
+        Button back = new Button("Back");
+        back.setOnAction(e -> backToHomePage(primary));
+        VBox bottomContent = new VBox(back);
+        bottomContent.setAlignment(Pos.CENTER);
+        bottomContent.setPadding(new Insets(15));
+        transactionPage.setBottom(bottomContent);
+
+        // Create the scene for the transaction page and display it
+        Scene transactionScene = new Scene(transactionPage, 1280, 800);
+        primary.setScene(transactionScene);
+        primary.show();
+    }
+
+    
+    private void displayScheduledTransactions(Stage primary) {
+        // Create a TableView for displaying scheduled transactions
+        TableView<ScheduledTransaction> table = new TableView<>();
+
+        // Define the columns for the table
+        TableColumn<ScheduledTransaction, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getName()));
+
+        TableColumn<ScheduledTransaction, String> accountCol = new TableColumn<>("Account");
+        accountCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getAccount()));
+
+        TableColumn<ScheduledTransaction, String> transTypeCol = new TableColumn<>("Transaction Type");
+        transTypeCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTransactionType()));
+
+        TableColumn<ScheduledTransaction, String> freqCol = new TableColumn<>("Frequency");
+        freqCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getFrequency()));
+
+        TableColumn<ScheduledTransaction, Integer> dueDateCol = new TableColumn<>("Due Date");
+        // Convert due date to string (day of the month)
+        dueDateCol.setCellValueFactory(data -> new SimpleIntegerProperty(data.getValue().getDueDate()).asObject());
+
+        TableColumn<ScheduledTransaction, Double> paymentCol = new TableColumn<>("Payment Amount");
+        paymentCol.setCellValueFactory(data -> new SimpleDoubleProperty(data.getValue().getPayAmount()).asObject());
+        // Formatting the payment to 2 decimal places
+        paymentCol.setCellFactory(column -> {
+            return new TableCell<ScheduledTransaction, Double>() {
+                @Override
+                protected void updateItem(Double item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) {
+                        setText(null);
+                    } else {
+                        setText(String.format("%.2f", item)); // Format as currency (2 decimal places)
+                    }
+                }
+            };
+        });
+
+        // Add columns to the table
+        table.getColumns().addAll(nameCol, accountCol, transTypeCol, freqCol, dueDateCol, paymentCol);
+
+        try {
+            // Fetch all scheduled transactions and display them in the table
+            List<ScheduledTransaction> scheduledTransactions = ScheduledTransaction.getAllScheduledTransactions();
+            ObservableList<ScheduledTransaction> scheduledTransactionsList = FXCollections.observableList(scheduledTransactions);
+            table.setItems(scheduledTransactionsList);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Set sorting by Due Date
+        dueDateCol.setSortType(TableColumn.SortType.ASCENDING);
+        table.getSortOrder().add(dueDateCol);
+
+        // Create a BorderPane for the page layout
+        BorderPane scheduledTransactionPage = new BorderPane();
+        scheduledTransactionPage.setCenter(table);
+
+        // Create a Back button
+        Button back = new Button("Back");
+        back.setOnAction(e -> backToHomePage(primary));
+
+        // Create bottom content with the Back button
+        VBox bottomContent = new VBox(back);
+        bottomContent.setAlignment(Pos.CENTER);
+        bottomContent.setPadding(new Insets(15));
+        scheduledTransactionPage.setBottom(bottomContent);
+
+        // Set the scene for the scheduled transactions page
+        Scene scheduledTransactionScene = new Scene(scheduledTransactionPage, 1280, 800);
+        primary.setScene(scheduledTransactionScene);
+        primary.show();
+    }
+
     
     public class CSVUtils {
     	public static ArrayList<String> readAccountsFromCSV(String filename) {
