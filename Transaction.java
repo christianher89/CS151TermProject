@@ -2,7 +2,9 @@ package application;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Transaction {
     private String account;
@@ -45,4 +47,39 @@ public class Transaction {
                         newTransaction.getDepositAmount());
         }
     }
+    
+    public static List<Transaction> getAllTransactions() throws IOException {
+        List<Transaction> transactions = new ArrayList<>();
+        // Date format as expected in the CSV file (e.g., "yyyy-MM-dd")
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("Transactions.csv"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] data = line.split(",");
+                if (data.length == 6) { // Assuming each transaction has 6 fields
+                    try {
+                        String account = data[0].trim();           // Account name
+                        String transactionType = data[1].trim();   // Transaction type (e.g., payment, deposit)
+                        LocalDate transactionDate = LocalDate.parse(data[2].trim(), formatter); // Parsing date into LocalDate
+                        String description = data[3].trim();       // Description of the transaction
+                        double paymentAmount = Double.parseDouble(data[4].trim()); // Payment amount
+                        double depositAmount = Double.parseDouble(data[5].trim()); // Deposit amount
+
+                        // Creating a new Transaction object with the parsed values
+                        transactions.add(new Transaction(account, transactionType, transactionDate,
+                                description, paymentAmount, depositAmount));
+                    } catch (NumberFormatException e) {
+                        System.out.println("Skipping line due to number format error: " + line);
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        System.out.println("Skipping line due to error parsing date: " + line);
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return transactions;
+    }
+
 }
