@@ -94,17 +94,15 @@ public class ScheduledTransaction {
 	        while ((line = reader.readLine()) != null) {
 	            String[] data = line.split(",");
 	            
-	            // Make sure each line contains the right number of fields
 	            if (data.length == 6) {
 	                try {
-	                    String scheduleName = data[0].trim(); // Schedule's name
-	                    String accountName = data[1].trim();  // Account Name
-	                    String transactionType = data[2].trim(); // Transaction Type
-	                    String frequency = data[3].trim(); // Frequency (hardcoded as "Monthly" in the UI)
-	                    int dueDate = Integer.parseInt(data[4].trim()); // Due Date (integer)
-	                    double paymentAmount = Double.parseDouble(data[5].trim()); // Payment Amount
+	                    String scheduleName = data[0].trim();
+	                    String accountName = data[1].trim();
+	                    String transactionType = data[2].trim();
+	                    String frequency = data[3].trim(); 
+	                    int dueDate = Integer.parseInt(data[4].trim()); 
+	                    double paymentAmount = Double.parseDouble(data[5].trim());
 	                    
-	                    // Create and add the ScheduledTransaction to the list
 	                    scheduledTransactions.add(new ScheduledTransaction(scheduleName, accountName, transactionType, dueDate, paymentAmount));
 	                    
 	                } catch (NumberFormatException e) {
