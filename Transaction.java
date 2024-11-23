@@ -14,6 +14,8 @@ public class Transaction {
     private double paymentAmount;
     private double depositAmount;
     
+    private static final String FILE_NAME = "Transactions.cvs";
+
     private static ArrayList<Transaction> transactionList = new ArrayList<>();
 
     public Transaction(String account, String transactionType, LocalDate transactionDate,
@@ -25,7 +27,8 @@ public class Transaction {
         this.paymentAmount = paymentAmount;
         this.depositAmount = depositAmount;
     }
-    
+
+    // Getters for each field (optional)
     public String getAccount() { return account; }
     public String getTransactionType() { return transactionType; }
     public LocalDate getTransactionDate() { return transactionDate; }
@@ -39,31 +42,33 @@ public class Transaction {
         File transactionFile = new File("Transactions.csv");
         try (PrintWriter out = new PrintWriter(new FileWriter(transactionFile, true))) {
             out.println(newTransaction.getAccount() + "," +
-                        newTransaction.getTransactionType() + "," +
-                        newTransaction.getTransactionDate() + "," +
-                        newTransaction.getDescription() + "," +
-                        newTransaction.getPaymentAmount() + "," +
-                        newTransaction.getDepositAmount());
+                    newTransaction.getTransactionType() + "," +
+                    newTransaction.getTransactionDate() + "," +
+                    newTransaction.getDescription() + "," +
+                    newTransaction.getPaymentAmount() + "," +
+                    newTransaction.getDepositAmount());
         }
     }
-    
+
     public static List<Transaction> getAllTransactions() throws IOException {
         List<Transaction> transactions = new ArrayList<>();
+        // Date format as expected in the CSV file (e.g., "yyyy-MM-dd")
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         try (BufferedReader reader = new BufferedReader(new FileReader("Transactions.csv"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] data = line.split(",");
-                if (data.length == 6) {
+                if (data.length == 6) { // Assuming each transaction has 6 fields
                     try {
-                        String account = data[0].trim();    
-                        String transactionType = data[1].trim(); 
-                        LocalDate transactionDate = LocalDate.parse(data[2].trim(), formatter); 
-                        String description = data[3].trim();
-                        double paymentAmount = Double.parseDouble(data[4].trim()); 
-                        double depositAmount = Double.parseDouble(data[5].trim()); 
+                        String account = data[0].trim();           // Account name
+                        String transactionType = data[1].trim();   // Transaction type (e.g., payment, deposit)
+                        LocalDate transactionDate = LocalDate.parse(data[2].trim(), formatter); // Parsing date into LocalDate
+                        String description = data[3].trim();       // Description of the transaction
+                        double paymentAmount = Double.parseDouble(data[4].trim()); // Payment amount
+                        double depositAmount = Double.parseDouble(data[5].trim()); // Deposit amount
 
+                        // Creating a new Transaction object with the parsed values
                         transactions.add(new Transaction(account, transactionType, transactionDate,
                                 description, paymentAmount, depositAmount));
                     } catch (NumberFormatException e) {
@@ -77,6 +82,23 @@ public class Transaction {
             }
         }
         return transactions;
+    }
+    public static void updateTransaction(Transaction updatedTrandaction) throws IOException{
+        List<Transaction> transactions = getAllTransactions();
+        
+        for(int i = 0; i < transactions.size(); i++){
+            if(transactions.get(i).getDescription().equals((updatedTrandaction.getDescription())){
+                transactions.set(i, updatedTrandaction);
+                break;
+            }
+        }
+        try(PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))){
+            for (Transaction transaction : transactions){
+                writer.println(Transaction transaction : transactions){
+                    writer.println(transaction.getAccount() + "," + transaction.getTransactionType() + "," + transaction.getTransactionDate() + "," + transaction.getDescription() + "," + transaction.getPaymentAmount() + "," + transaction.getDepositAmount());
+                }
+            }
+        }
     }
 
 }
