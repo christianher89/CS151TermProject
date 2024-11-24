@@ -16,15 +16,13 @@ public class TransactionType {
     }
     
     public static void storeTransactionType(TransactionType newType) throws IOException {
-    	transactionTypeList.add(newType);
-    	
+        transactionTypeList.add(newType);
+
         File typesFile = new File("TransactionTypes.csv");
-        PrintWriter out = new PrintWriter(new FileWriter(typesFile, true));
         
-        for (TransactionType t : transactionTypeList) {
-        	out.println(newType.getName());
+        try (PrintWriter out = new PrintWriter(new FileWriter(typesFile, true))) {
+            out.println(newType.getName());
         }
-        out.close();
-        
     }
+
 }
