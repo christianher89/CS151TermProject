@@ -16,6 +16,7 @@ import javafx.geometry.Pos;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
@@ -37,6 +38,7 @@ import java.util.List;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import javafx.scene.input.MouseEvent;
 import java.util.*;
@@ -634,17 +636,38 @@ public class HomePage extends Application {
 			ObservableList<Transaction> transactionList = FXCollections.observableList(transactions);
 			table.setItems(transactionList);
 
-			// Search as the keys are typed into the box
+			TableColumn<Transaction, Void> editCol = new TableColumn<>("Edit");
+	        editCol.setCellFactory(param -> new TableCell<Transaction, Void>() {
+	            private final Button editButton = new Button("Edit");
+
+	            {
+	                // On button click, open the edit page
+	                editButton.setOnAction(event -> {
+	                    Transaction selectedTransaction = getTableView().getItems().get(getIndex());
+	                    openEditPage(selectedTransaction, primary);
+	                });
+	            }
+
+	            @Override
+	            public void updateItem(Void item, boolean empty) {
+	                super.updateItem(item, empty);
+	                if (empty) {
+	                    setGraphic(null);
+	                } else {
+	                    setGraphic(editButton);
+	                }
+	            }
+	        });
+	        table.getColumns().add(editCol);
+			
 			tSearch.addEventHandler(KeyEvent.KEY_RELEASED, e -> {
-				List<Transaction> filterTransactions = new ArrayList<Transaction>(); // list for filtered Transactions
+				List<Transaction> filterTransactions = new ArrayList<Transaction>(); 
 				String searchSub = tSearch.getText();
 				if (tSearch.getText().isEmpty()) {
-					// If the textField empty, reset the table and jump out
 					table.setItems(transactionList);
 					return;
 				}
 				for (Transaction tran : transactions) {
-					// Take both strings to lower case for .contains()
 					if (tran.getDescription().toLowerCase().contains(searchSub.toLowerCase())) {
 						filterTransactions.add(tran);
 					}
@@ -722,6 +745,30 @@ public class HomePage extends Application {
 
 		table.getColumns().addAll(nameCol, accountCol, transTypeCol, freqCol, dueDateCol, paymentCol);
 
+		TableColumn<ScheduledTransaction, Void> editCol = new TableColumn<>("Edit");
+	    editCol.setCellFactory(param -> new TableCell<ScheduledTransaction, Void>() {
+	        private final Button editButton = new Button("Edit");
+
+	        {
+	            // On button click, open the edit page
+	            editButton.setOnAction(event -> {
+	                ScheduledTransaction selectedST = getTableView().getItems().get(getIndex());
+	                openEditPage(selectedST, primary);
+	            });
+	        }
+
+	        @Override
+	        public void updateItem(Void item, boolean empty) {
+	            super.updateItem(item, empty);
+	            if (empty) {
+	                setGraphic(null);
+	            } else {
+	                setGraphic(editButton);
+	            }
+	        }
+	    });
+	    table.getColumns().add(editCol);
+		
 		try {
 			List<ScheduledTransaction> scheduledTransactions = ScheduledTransaction.getAllScheduledTransactions();
 			ObservableList<ScheduledTransaction> scheduledTransactionsList = FXCollections
@@ -769,6 +816,161 @@ public class HomePage extends Application {
 		Scene scheduledTransactionScene = new Scene(scheduledTransactionPage, 1280, 800);
 		primary.setScene(scheduledTransactionScene);
 		primary.show();
+	}
+	
+	private void openEditPage(Editable editableObject, Stage primary) {
+	    VBox editLayout = new VBox(10); // Compact layout
+	    editLayout.setPadding(new Insets(10));
+
+	    Map<String, Control> fieldMapping = new HashMap<>(); // Map to store field names and their input controls
+
+	    // Title
+	    Text editText = new Text("Edit " + editableObject.getClass().getSimpleName());
+	    editText.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
+	    editLayout.getChildren().add(editText);
+
+	    // Common Fields
+	    Label accountLabel = new Label("Select Account:");
+	    ComboBox<String> accountComboBox = new ComboBox<>();
+	    ArrayList<String> accounts = CSVUtils.readAccountsFromCSV("accounts.csv");
+	    accountComboBox.getItems().addAll(accounts);
+
+	    Label transTypeLabel = new Label("Select Transaction Type:");
+	    ComboBox<String> transTypeComboBox = new ComboBox<>();
+	    ArrayList<String> transactionTypes = CSVUtils.readTransactionTypesFromCSV("transactionTypes.csv");
+	    transTypeComboBox.getItems().addAll(transactionTypes);
+
+	    Label transDateLabel = new Label("Transaction Date:");
+	    DatePicker transDatePicker = new DatePicker();
+
+	    // Specific Fields Based on Editable Object Type
+	    if (editableObject instanceof Transaction) {
+	        Transaction transaction = (Transaction) editableObject;
+
+	        accountComboBox.setValue(transaction.getAccount());
+	        transTypeComboBox.setValue(transaction.getTransactionType());
+	        transDatePicker.setValue(transaction.getTransactionDate());
+
+	        fieldMapping.put("Account", accountComboBox);
+	        fieldMapping.put("Transaction Type", transTypeComboBox);
+	        fieldMapping.put("Transaction Date", transDatePicker);
+
+	        Label transDescLabel = new Label("Description:");
+	        TextField transDescField = new TextField(transaction.getDescription());
+	        fieldMapping.put("Description", transDescField);
+
+	        Label paymentLabel = new Label("Payment Amount:");
+	        TextField paymentField = new TextField(String.valueOf(transaction.getPaymentAmount()));
+	        fieldMapping.put("Payment Amount", paymentField);
+
+	        Label depositLabel = new Label("Deposit Amount:");
+	        TextField depositField = new TextField(String.valueOf(transaction.getDepositAmount()));
+	        fieldMapping.put("Deposit Amount", depositField);
+
+	        editLayout.getChildren().addAll(
+	                accountLabel, accountComboBox,
+	                transTypeLabel, transTypeComboBox,
+	                transDateLabel, transDatePicker,
+	                transDescLabel, transDescField,
+	                paymentLabel, paymentField,
+	                depositLabel, depositField
+	        );
+	    } else if (editableObject instanceof ScheduledTransaction) {
+	        ScheduledTransaction scheduledTransaction = (ScheduledTransaction) editableObject;
+
+	        accountComboBox.setValue(scheduledTransaction.getAccount());
+	        transTypeComboBox.setValue(scheduledTransaction.getTransactionType());
+
+	        fieldMapping.put("Account", accountComboBox);
+	        fieldMapping.put("Transaction Type", transTypeComboBox);
+
+	        Label nameLabel = new Label("Name:");
+	        TextField nameField = new TextField(scheduledTransaction.getName());
+	        fieldMapping.put("Name", nameField);
+
+	        Label dueDateLabel = new Label("Due Date:");
+	        TextField dueDateField = new TextField(String.valueOf(scheduledTransaction.getDueDate()));
+	        fieldMapping.put("Due Date", dueDateField);
+
+	        Label paymentLabel = new Label("Payment Amount:");
+	        TextField paymentField = new TextField(String.valueOf(scheduledTransaction.getPayAmount()));
+	        fieldMapping.put("Payment Amount", paymentField);
+
+	        editLayout.getChildren().addAll(
+	                accountLabel, accountComboBox,
+	                transTypeLabel, transTypeComboBox,
+	                nameLabel, nameField,
+	                dueDateLabel, dueDateField,
+	                paymentLabel, paymentField
+	        );
+	    }
+
+	    // Save and Back Buttons
+	    Button saveButton = new Button("Save");
+	    Button backButton = new Button("Back");
+	    HBox buttonBox = new HBox(10, saveButton, backButton);
+	    buttonBox.setAlignment(Pos.CENTER);
+
+	    editLayout.getChildren().add(buttonBox);
+
+	    saveButton.setOnAction(e -> {
+	        try {
+	            if (editableObject instanceof Transaction) {
+	                Transaction transaction = (Transaction) editableObject;
+	                transaction.setAccount(((ComboBox<String>) fieldMapping.get("Account")).getValue());
+	                transaction.setTransactionType(((ComboBox<String>) fieldMapping.get("Transaction Type")).getValue());
+	                transaction.setTransactionDate(((DatePicker) fieldMapping.get("Transaction Date")).getValue());
+	                transaction.setDescription(((TextField) fieldMapping.get("Description")).getText().trim());
+	                transaction.setPaymentAmount(Double.parseDouble(((TextField) fieldMapping.get("Payment Amount")).getText().trim()));
+	                transaction.setDepositAmount(Double.parseDouble(((TextField) fieldMapping.get("Deposit Amount")).getText().trim()));
+
+	                transaction.save();
+	                displayTransactions(primary); // Return to transactions display
+	            } else if (editableObject instanceof ScheduledTransaction) {
+	                ScheduledTransaction scheduledTransaction = (ScheduledTransaction) editableObject;
+	                scheduledTransaction.setAccount(((ComboBox<String>) fieldMapping.get("Account")).getValue());
+	                scheduledTransaction.setTransactionType(((ComboBox<String>) fieldMapping.get("Transaction Type")).getValue());
+	                scheduledTransaction.setName(((TextField) fieldMapping.get("Name")).getText().trim());
+	                scheduledTransaction.setDueDate(Integer.parseInt(((TextField) fieldMapping.get("Due Date")).getText().trim()));
+	                scheduledTransaction.setPayAmount(Double.parseDouble(((TextField) fieldMapping.get("Payment Amount")).getText().trim()));
+
+	                scheduledTransaction.save();
+	                displayScheduledTransactions(primary); // Return to scheduled transactions display
+	            }
+
+	            // Close edit page
+	            Stage stage = (Stage) saveButton.getScene().getWindow();
+	            stage.close();
+	        } catch (Exception ex) {
+	            ex.printStackTrace();
+	        }
+	    });
+
+	    backButton.setOnAction(e -> {
+	        // Close the edit page and go back to the display page
+	        Stage stage = (Stage) backButton.getScene().getWindow();
+	        stage.close();
+	        if (editableObject instanceof Transaction) {
+	            displayTransactions(primary);
+	        } else if (editableObject instanceof ScheduledTransaction) {
+	            displayScheduledTransactions(primary);
+	        }
+	    });
+
+	    // Display the edit page
+	    Scene editScene = new Scene(editLayout, 400, 500); // Smaller UI
+	    Stage editStage = new Stage();
+	    editStage.setScene(editScene);
+	    editStage.setTitle("Edit " + editableObject.getClass().getSimpleName());
+	    editStage.show();
+	}
+
+	
+	private TextField createTextField(VBox layout, String label, String value) {
+	    Label fieldLabel = new Label(label);
+	    TextField textField = new TextField(value);
+	    layout.getChildren().addAll(fieldLabel, textField);
+	    return textField;
 	}
 
 	public class CSVUtils {
