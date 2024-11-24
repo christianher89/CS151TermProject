@@ -7,5 +7,4 @@ public interface Editable {
 	
 	public List<String> getEditableFields();
 	
-	public void save() throws IOException;
 }
