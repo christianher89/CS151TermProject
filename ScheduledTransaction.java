@@ -17,6 +17,8 @@ public class ScheduledTransaction implements Editable{
 	private int dueDate;
 	private double payAmount;
 	
+	private static final String FILE_NAME = "ScheduledTransactions.csv";
+	
 	private static ArrayList<ScheduledTransaction> schedTransactionList = new ArrayList<>();
 	
 	public ScheduledTransaction(String name, String acc, String transactionType, 
@@ -122,21 +124,29 @@ public class ScheduledTransaction implements Editable{
 	    return scheduledTransactions;
 	}
 	
-	private static void updateScheduledTransaction(ScheduledTransaction updatedTransaction) throws IOException {
-	    // Loop through the list of scheduled transactions and find the one to update
-	    for (int i = 0; i < schedTransactionList.size(); i++) {
-	        ScheduledTransaction st = schedTransactionList.get(i);
-	        // Assuming you want to match on a unique field like name and account, modify as needed
-	        if (st.getName().equals(updatedTransaction.getName()) && 
-	            st.getAccount().equals(updatedTransaction.getAccount())) {
-	            
-	            // Update the fields of the found scheduled transaction with the updated values
-	            schedTransactionList.set(i, updatedTransaction);
-	            break; // Once we find and update the transaction, exit the loop
-	        }
-	    }
+	private static void updateScheduledTransaction(ScheduledTransaction originalScheduledTransaction, ScheduledTransaction updatedScheduledTransaction) throws IOException {
+	    List<ScheduledTransaction> schedTransactionList = getAllScheduledTransactions();
+	    try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
+	    	for (ScheduledTransaction st : schedTransactionList) {
+	       	    if (st.getName().equals(originalScheduledTransaction.getName())) {
+	       	    	st.setName(updatedScheduledTransaction.getName());
+	       	    	st.setAccount(updatedScheduledTransaction.getAccount());
+	       	    	st.setTransactionType(updatedScheduledTransaction.getTransactionType());
+	       	    	st.setDueDate(updatedScheduledTransaction.getDueDate());
+	       	    	st.setPayAmount(updatedScheduledTransaction.getPayAmount());
+	            	}
+	            }
 
-	    // Rewrite the file with the updated list of scheduled transactions
+	           	for (ScheduledTransaction st : schedTransactionList) {
+	           		writer.println(st.getName() + "," +
+	           				st.getAccount() + "," +
+	           				st.getTransactionType() + "," +
+	           				st.getFrequency() + "," +
+	           				st.getDueDate() + "," +
+	           				st.getPayAmount());
+	           	}
+        }
+
 	    try (PrintWriter out = new PrintWriter(new FileWriter("ScheduledTransactions.csv"))) {
 	        for (ScheduledTransaction st : schedTransactionList) {
 	            out.println(st.getName() + "," +
@@ -153,17 +163,16 @@ public class ScheduledTransaction implements Editable{
 	@Override
     public List<String> getEditableFields() {
         List<String> fields = new ArrayList<>();
-        fields.add(getName()); // Display and edit name
-        fields.add(getAccount()); // Display and edit account
-        fields.add(String.valueOf(getPayAmount())); // Display and edit payment amount
-        // Skip frequency as it's hard-coded
+        fields.add(getName()); 
+        fields.add(getAccount());
+        fields.add(String.valueOf(getPayAmount()));
         return fields;
     }
 	
-	@Override
-    public void save() throws IOException {
-        // Save updated scheduled transaction to the file
-        // Here we update the scheduled transaction object in the list, and rewrite the file
-        updateScheduledTransaction(this);
+    public void save(ScheduledTransaction originalScheduledTransaction, ScheduledTransaction updatedScheduledTransaction) throws IOException {
+    	if(!originalScheduledTransaction.equals(updatedScheduledTransaction)) {
+    		updateScheduledTransaction(originalScheduledTransaction, updatedScheduledTransaction);
+    	}
+        
     }
 }
