@@ -767,6 +767,7 @@ public class HomePage extends Application {
 	            }
 	        }
 	    });
+	    
 	    table.getColumns().add(editCol);
 		
 		try {
@@ -819,17 +820,15 @@ public class HomePage extends Application {
 	}
 	
 	private void openEditPage(Editable editableObject, Stage primary) {
-	    VBox editLayout = new VBox(10); // Compact layout
+	    VBox editLayout = new VBox(10);
 	    editLayout.setPadding(new Insets(10));
 
-	    Map<String, Control> fieldMapping = new HashMap<>(); // Map to store field names and their input controls
+	    Map<String, Control> fieldMapping = new HashMap<>();
 
-	    // Title
 	    Text editText = new Text("Edit " + editableObject.getClass().getSimpleName());
 	    editText.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
 	    editLayout.getChildren().add(editText);
 
-	    // Common Fields
 	    Label accountLabel = new Label("Select Account:");
 	    ComboBox<String> accountComboBox = new ComboBox<>();
 	    ArrayList<String> accounts = CSVUtils.readAccountsFromCSV("accounts.csv");
@@ -843,7 +842,6 @@ public class HomePage extends Application {
 	    Label transDateLabel = new Label("Transaction Date:");
 	    DatePicker transDatePicker = new DatePicker();
 
-	    // Specific Fields Based on Editable Object Type
 	    if (editableObject instanceof Transaction) {
 	        Transaction transaction = (Transaction) editableObject;
 
@@ -905,7 +903,6 @@ public class HomePage extends Application {
 	        );
 	    }
 
-	    // Save and Back Buttons
 	    Button saveButton = new Button("Save");
 	    Button backButton = new Button("Back");
 	    HBox buttonBox = new HBox(10, saveButton, backButton);
@@ -916,29 +913,43 @@ public class HomePage extends Application {
 	    saveButton.setOnAction(e -> {
 	        try {
 	            if (editableObject instanceof Transaction) {
-	                Transaction transaction = (Transaction) editableObject;
-	                transaction.setAccount(((ComboBox<String>) fieldMapping.get("Account")).getValue());
-	                transaction.setTransactionType(((ComboBox<String>) fieldMapping.get("Transaction Type")).getValue());
-	                transaction.setTransactionDate(((DatePicker) fieldMapping.get("Transaction Date")).getValue());
-	                transaction.setDescription(((TextField) fieldMapping.get("Description")).getText().trim());
-	                transaction.setPaymentAmount(Double.parseDouble(((TextField) fieldMapping.get("Payment Amount")).getText().trim()));
-	                transaction.setDepositAmount(Double.parseDouble(((TextField) fieldMapping.get("Deposit Amount")).getText().trim()));
+	                Transaction originalTransaction = (Transaction) editableObject;
+	                Transaction updatedTransaction = new Transaction(
+	                        originalTransaction.getAccount(), 
+	                        originalTransaction.getTransactionType(),
+	                        originalTransaction.getTransactionDate(),
+	                        originalTransaction.getDescription(),
+	                        originalTransaction.getPaymentAmount(),
+	                        originalTransaction.getDepositAmount()
+	                    );
+	                updatedTransaction.setAccount(((ComboBox<String>) fieldMapping.get("Account")).getValue());
+	                updatedTransaction.setTransactionType(((ComboBox<String>) fieldMapping.get("Transaction Type")).getValue());
+	                updatedTransaction.setTransactionDate(((DatePicker) fieldMapping.get("Transaction Date")).getValue());
+	                updatedTransaction.setDescription(((TextField) fieldMapping.get("Description")).getText().trim());
+	                updatedTransaction.setPaymentAmount(Double.parseDouble(((TextField) fieldMapping.get("Payment Amount")).getText().trim()));
+	                updatedTransaction.setDepositAmount(Double.parseDouble(((TextField) fieldMapping.get("Deposit Amount")).getText().trim()));
 
-	                transaction.save();
-	                displayTransactions(primary); // Return to transactions display
+	                originalTransaction.save(originalTransaction, updatedTransaction);
+	                displayTransactions(primary); 
 	            } else if (editableObject instanceof ScheduledTransaction) {
-	                ScheduledTransaction scheduledTransaction = (ScheduledTransaction) editableObject;
-	                scheduledTransaction.setAccount(((ComboBox<String>) fieldMapping.get("Account")).getValue());
-	                scheduledTransaction.setTransactionType(((ComboBox<String>) fieldMapping.get("Transaction Type")).getValue());
-	                scheduledTransaction.setName(((TextField) fieldMapping.get("Name")).getText().trim());
-	                scheduledTransaction.setDueDate(Integer.parseInt(((TextField) fieldMapping.get("Due Date")).getText().trim()));
-	                scheduledTransaction.setPayAmount(Double.parseDouble(((TextField) fieldMapping.get("Payment Amount")).getText().trim()));
+	            	ScheduledTransaction originalScheduledTransaction = (ScheduledTransaction) editableObject;
+	                ScheduledTransaction updatedScheduledTransaction = new ScheduledTransaction(
+	                		originalScheduledTransaction.getAccount(),
+	                		originalScheduledTransaction.getTransactionType(),
+	                		originalScheduledTransaction.getName(),
+	                		originalScheduledTransaction.getDueDate(),
+	                		originalScheduledTransaction.getPayAmount()
+	                	);
+	                updatedScheduledTransaction.setAccount(((ComboBox<String>) fieldMapping.get("Account")).getValue());
+	                updatedScheduledTransaction.setTransactionType(((ComboBox<String>) fieldMapping.get("Transaction Type")).getValue());
+	                updatedScheduledTransaction.setName(((TextField) fieldMapping.get("Name")).getText().trim());
+	                updatedScheduledTransaction.setDueDate(Integer.parseInt(((TextField) fieldMapping.get("Due Date")).getText().trim()));
+	                updatedScheduledTransaction.setPayAmount(Double.parseDouble(((TextField) fieldMapping.get("Payment Amount")).getText().trim()));
 
-	                scheduledTransaction.save();
-	                displayScheduledTransactions(primary); // Return to scheduled transactions display
+	                originalScheduledTransaction.save(originalScheduledTransaction, updatedScheduledTransaction);
 	            }
 
-	            // Close edit page
+	            
 	            Stage stage = (Stage) saveButton.getScene().getWindow();
 	            stage.close();
 	        } catch (Exception ex) {
@@ -947,7 +958,6 @@ public class HomePage extends Application {
 	    });
 
 	    backButton.setOnAction(e -> {
-	        // Close the edit page and go back to the display page
 	        Stage stage = (Stage) backButton.getScene().getWindow();
 	        stage.close();
 	        if (editableObject instanceof Transaction) {
@@ -957,8 +967,7 @@ public class HomePage extends Application {
 	        }
 	    });
 
-	    // Display the edit page
-	    Scene editScene = new Scene(editLayout, 400, 500); // Smaller UI
+	    Scene editScene = new Scene(editLayout, 400, 500);
 	    Stage editStage = new Stage();
 	    editStage.setScene(editScene);
 	    editStage.setTitle("Edit " + editableObject.getClass().getSimpleName());
