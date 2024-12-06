@@ -6,8 +6,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ScheduledTransaction implements Editable{
 	private String name;
@@ -157,6 +159,14 @@ public class ScheduledTransaction implements Editable{
 	                        st.getPayAmount());
 	        }
 	    }
+	}
+	
+	public static List<ScheduledTransaction> getDueTransactions() throws IOException {
+	    List<ScheduledTransaction> scheduledTransactions = getAllScheduledTransactions();
+	    int todayDay = LocalDate.now().getDayOfMonth();
+	    return scheduledTransactions.stream()
+	            .filter(st -> st.getDueDate() == todayDay)
+	            .collect(Collectors.toList());
 	}
 
 

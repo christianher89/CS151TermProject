@@ -14,6 +14,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.geometry.Pos;
 import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
@@ -94,6 +96,8 @@ public class HomePage extends Application {
 
 			primary.setScene(homeScene);
 			primary.show();
+			
+			notifyDueTransactions();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -239,6 +243,28 @@ public class HomePage extends Application {
 		Scene accountScene = new Scene(accountPage, 1280, 800);
 		primary.setScene(accountScene);
 		primary.show();
+	}
+	
+	private void notifyDueTransactions() {
+	    try {
+	        List<ScheduledTransaction> dueTransactions = ScheduledTransaction.getDueTransactions();
+	        if (!dueTransactions.isEmpty()) {
+	            Alert alert = new Alert(AlertType.INFORMATION);
+	            alert.setTitle("Scheduled Transactions Due");
+	            alert.setHeaderText("Transactions due today:");
+	            StringBuilder message = new StringBuilder();
+	            for (ScheduledTransaction st : dueTransactions) {
+	                message.append("- ").append(st.getName())
+	                       .append(" (Account: ").append(st.getAccount())
+	                       .append(", Amount: $").append(st.getPayAmount())
+	                       .append(")\n");
+	            }
+	            alert.setContentText(message.toString());
+	            alert.showAndWait();
+	        }
+	    } catch (IOException e) {
+	        System.err.println("Error retrieving due transactions: " + e.getMessage());
+	    }
 	}
 
 	private void backToHomePage(Stage primary) {
