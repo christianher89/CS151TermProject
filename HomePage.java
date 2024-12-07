@@ -52,6 +52,8 @@ public class HomePage extends Application {
 	private Button scheduleTransactionBtn = new Button("Schedule Transaction");
 	private Button viewScheduledTransactionsBtn = new Button("View All Scheduled Transactions");
 	private Button viewTransactionsBtn = new Button("View all Transactions");
+	private Button accReportBtn = new Button("Account Report");
+	private Button tTReportBtn = new Button("Transaction Type Report");
 	private Text title = new Text("PennyPal");
 
 	@Override
@@ -68,9 +70,11 @@ public class HomePage extends Application {
 			scheduleTransactionBtn.setMinSize(150, 35);
 			viewScheduledTransactionsBtn.setMinSize(150, 35);
 			viewTransactionsBtn.setMinSize(150, 35);
+			accReportBtn.setMinSize(150, 35);
+			tTReportBtn.setMinSize(150, 35);
 
 			VBox centerContent = new VBox(15, homeBtn, viewAccountsBtn, transactionTypeBtn, transactionsBtn,
-					scheduleTransactionBtn, viewTransactionsBtn, viewScheduledTransactionsBtn);
+					scheduleTransactionBtn, viewTransactionsBtn, viewScheduledTransactionsBtn, accReportBtn, tTReportBtn);
 			centerContent.setAlignment(Pos.CENTER);
 			centerContent.setPadding(new Insets(-100, 0, 0, 0));
 
@@ -88,6 +92,8 @@ public class HomePage extends Application {
 			scheduleTransactionBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> openScheduleTransactionPage(primary));
 			viewTransactionsBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> displayTransactions(primary));
 			viewScheduledTransactionsBtn.setOnAction(e -> displayScheduledTransactions(primary));
+			accReportBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> displayAccReportPage(primary));
+			tTReportBtn.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> displayTTReportPage(primary));
 
 			Scene homeScene = new Scene(pages, 1280, 800);
 			homeScene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
@@ -974,6 +980,96 @@ public class HomePage extends Application {
 	    editStage.show();
 	}
 
+	private void displayAccReportPage(Stage primary) {
+		BorderPane accReportPage = new BorderPane();
+		ComboBox<String> accDropDown;
+		VBox searchContainer = null;;
+
+		Button back = new Button("Home");
+		back.setMinSize(50, 10);
+
+		TableView<Transaction> table = new TableView<>();
+
+		TableColumn<Transaction, String> transTypeCol = new TableColumn<>("Transaction Type");
+		transTypeCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTransactionType()));
+
+		TableColumn<Transaction, String> dateCol = new TableColumn<>("Transaction Date");
+		dateCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTransactionDate().toString()));
+
+		TableColumn<Transaction, String> descCol = new TableColumn<>("Description");
+		descCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDescription()));
+
+		TableColumn<Transaction, Double> paymentCol = new TableColumn<>("Payment Amount");
+		paymentCol.setCellValueFactory(data -> new SimpleDoubleProperty(data.getValue().getPaymentAmount()).asObject());
+
+		TableColumn<Transaction, Double> depositCol = new TableColumn<>("Deposit Amount");
+		depositCol.setCellValueFactory(data -> new SimpleDoubleProperty(data.getValue().getDepositAmount()).asObject());
+
+		table.getColumns().addAll(transTypeCol, dateCol, descCol, paymentCol, depositCol);
+		try {
+			List<Account> accounts = Account.getAllAccounts();
+			List<String> accNames = new ArrayList<String>();
+			for(Account a: accounts) {
+				accNames.add(a.getName());
+			}
+			Collections.sort(accNames);
+			ObservableList<String> accountList = FXCollections.observableList(accNames);
+			accDropDown = new ComboBox<String>(accountList);
+				
+			
+			List<Transaction> transactions = Transaction.getAllTransactions();
+			ObservableList<Transaction> transactionList = FXCollections.observableList(transactions);
+			table.setItems(transactionList);
+
+			accDropDown.setOnAction(e ->{
+				List<Transaction> filterTransactions = new ArrayList<Transaction>(); 
+				String searchSub = accDropDown.getValue();
+				if (searchSub.isEmpty()) {
+					table.setItems(transactionList);
+					return;
+				}
+				for (Transaction tran : transactions) {
+					if (tran.getAccount().toLowerCase().contains(searchSub.toLowerCase())) {
+						filterTransactions.add(tran);
+					}
+				}
+
+				ObservableList<Transaction> filterList = FXCollections.observableList(filterTransactions);
+				table.setItems(filterList);
+			});
+			
+			Label accChooseLabel = new Label("Choose Account:");
+			searchContainer = new VBox(accChooseLabel, accDropDown);
+				
+			
+		} catch(IOException e) {
+			System.out.println("No accounts yet");
+		}
+
+		
+		
+
+		dateCol.setSortType(TableColumn.SortType.DESCENDING);
+		table.getSortOrder().add(dateCol);
+
+		accReportPage.setTop(searchContainer);
+		accReportPage.setCenter(table);
+
+		back.setOnAction(e -> backToHomePage(primary));
+
+		VBox bottomContent = new VBox(back);
+		bottomContent.setAlignment(Pos.CENTER);
+		bottomContent.setPadding(new Insets(15));
+		accReportPage.setBottom(bottomContent);
+
+		Scene transactionScene = new Scene(accReportPage, 1280, 800);
+		primary.setScene(transactionScene);
+		primary.show();
+	}
+	
+	private void displayTTReportPage(Stage primary) {
+		
+	}
 	
 	private TextField createTextField(VBox layout, String label, String value) {
 	    Label fieldLabel = new Label(label);
