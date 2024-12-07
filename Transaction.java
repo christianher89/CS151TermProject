@@ -1,8 +1,7 @@
 package application;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -13,19 +12,26 @@ public class Transaction implements Editable{
     private String description;
     private double paymentAmount;
     private double depositAmount;
-    
+
     private static final String FILE_NAME = "Transactions.csv";
 
     private static ArrayList<Transaction> transactionList = new ArrayList<>();
 
     public Transaction(String account, String transactionType, LocalDate transactionDate,
-                       String description, double paymentAmount, double depositAmount) {
+                       String description, double paymentAmount, double depositAmount, LocalDate dueDate) {
         this.account = account;
         this.transactionType = transactionType;
         this.transactionDate = transactionDate;
         this.description = description;
         this.paymentAmount = paymentAmount;
         this.depositAmount = depositAmount;
+        this.dueDate = dueDate;
+    }
+public LoacalDate getDoubleDate() {
+        return dueDate;
+    }
+    public void setDoubleDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
     }
 
     // Getters and setters for each field
@@ -35,7 +41,7 @@ public class Transaction implements Editable{
     public String getDescription() { return description; }
     public double getPaymentAmount() { return paymentAmount; }
     public double getDepositAmount() { return depositAmount; }
-    
+
     public void setAccount(String account) { this.account = account; }
     public void setTransactionType(String transactionType) { this.transactionType = transactionType; }
     public void setTransactionDate(LocalDate transactionDate) { this.transactionDate = transactionDate; }
@@ -53,7 +59,7 @@ public class Transaction implements Editable{
                     newTransaction.getTransactionDate() + "," +
                     newTransaction.getDescription() + "," +
                     newTransaction.getPaymentAmount() + "," +
-                    newTransaction.getDepositAmount());
+                    newTransaction.getDepositAmount()) + "," + (newTransaction.getDueDate() != null ? newTransaction.getDueDate() : "");
         }
     }
 
@@ -65,14 +71,15 @@ public class Transaction implements Editable{
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] data = line.split(",");
-                if (data.length == 6) { 
+                if (data.length == 6) {
                     try {
-                        String account = data[0].trim(); 
+                        String account = data[0].trim();
                         String transactionType = data[1].trim();
                         LocalDate transactionDate = LocalDate.parse(data[2].trim(), formatter);
-                        String description = data[3].trim();   
-                        double paymentAmount = Double.parseDouble(data[4].trim()); 
+                        String description = data[3].trim();
+                        double paymentAmount = Double.parseDouble(data[4].trim());
                         double depositAmount = Double.parseDouble(data[5].trim());
+                        LocalDate dueDate = data.length > 6 && !data[6].trim().isEmpty() ? LocalDate.parse(data[6].trim(), formatter) : null;
 
                         transactions.add(new Transaction(account, transactionType, transactionDate,
                                 description, paymentAmount, depositAmount));
@@ -88,41 +95,41 @@ public class Transaction implements Editable{
         }
         return transactions;
     }
-    
-    public static void updateTransaction(Transaction originalTransaction, Transaction updatedTransaction) throws IOException {
-    	List<Transaction> transactions = getAllTransactions();
-        try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
-        	for (Transaction transaction : transactions) {
-        	    if (transaction.getDescription().equals(originalTransaction.getDescription())) {
-        	        transaction.setAccount(updatedTransaction.getAccount());
-        	        transaction.setTransactionType(updatedTransaction.getTransactionType());
-        	        transaction.setTransactionDate(updatedTransaction.getTransactionDate());
-        	        transaction.setDescription(updatedTransaction.getDescription());
-        	        transaction.setPaymentAmount(updatedTransaction.getPaymentAmount());
-        	        transaction.setDepositAmount(updatedTransaction.getDepositAmount());
-        	    }
-        	}
 
-        	for (Transaction transaction : transactions) {
-        	    writer.println(transaction.getAccount() + "," +
-        	                    transaction.getTransactionType() + "," +
-        	                    transaction.getTransactionDate() + "," +
-        	                    transaction.getDescription() + "," +
-        	                    transaction.getPaymentAmount() + "," +
-        	                    transaction.getDepositAmount());
-        	}
+    public static void updateTransaction(Transaction originalTransaction, Transaction updatedTransaction) throws IOException {
+        List<Transaction> transactions = getAllTransactions();
+        try (PrintWriter writer = new PrintWriter(new FileWriter(FILE_NAME))) {
+            for (Transaction transaction : transactions) {
+                if (transaction.getDescription().equals(originalTransaction.getDescription())) {
+                    transaction.setAccount(updatedTransaction.getAccount());
+                    transaction.setTransactionType(updatedTransaction.getTransactionType());
+                    transaction.setTransactionDate(updatedTransaction.getTransactionDate());
+                    transaction.setDescription(updatedTransaction.getDescription());
+                    transaction.setPaymentAmount(updatedTransaction.getPaymentAmount());
+                    transaction.setDepositAmount(updatedTransaction.getDepositAmount());
+                }
+            }
+
+            for (Transaction transaction : transactions) {
+                writer.println(transaction.getAccount() + "," +
+                        transaction.getTransactionType() + "," +
+                        transaction.getTransactionDate() + "," +
+                        transaction.getDescription() + "," +
+                        transaction.getPaymentAmount() + "," +
+                        transaction.getDepositAmount());
+            }
         }
     }
-    
+
     @Override
     public List<String> getEditableFields(){
-    	List<String> fields = new ArrayList<>();
-        fields.add(getDescription()); 
-        fields.add(String.valueOf(getPaymentAmount())); 
-        fields.add(String.valueOf(getDepositAmount())); 
+        List<String> fields = new ArrayList<>();
+        fields.add(getDescription());
+        fields.add(String.valueOf(getPaymentAmount()));
+        fields.add(String.valueOf(getDepositAmount()));
         return fields;
     }
-    
+
     public void save(Transaction originalTransaction, Transaction updatedTransaction) throws IOException {
         if (!originalTransaction.equals(updatedTransaction)) {
             updateTransaction(originalTransaction, updatedTransaction);
