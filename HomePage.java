@@ -22,6 +22,7 @@ import javafx.scene.control.Control;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.application.Application;
@@ -57,6 +58,7 @@ public class HomePage extends Application {
 	private Button accReportBtn = new Button("Account Report");
 	private Button tTReportBtn = new Button("Transaction Type Report");
 	private Text title = new Text("PennyPal");
+	private static boolean isNotificationShown = false;
 
 	@Override
 	public void start(Stage primary) {
@@ -82,7 +84,7 @@ public class HomePage extends Application {
 
 			VBox topContent = new VBox(10, welcome, title);
 			topContent.setAlignment(Pos.TOP_CENTER);
-			topContent.setPadding(new Insets(150, 0, 0, 0));
+			topContent.setPadding(new Insets(125, 0, 0, 0));
 
 			pages.setTop(topContent);
 			pages.setCenter(centerContent);
@@ -103,7 +105,10 @@ public class HomePage extends Application {
 			primary.setScene(homeScene);
 			primary.show();
 			
-			notifyDueTransactions();
+			if (isNotificationShown == false) {
+				notifyDueTransactions(primary);
+				isNotificationShown = true;
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -251,27 +256,56 @@ public class HomePage extends Application {
 		primary.show();
 	}
 	
-	private void notifyDueTransactions() {
+	private void notifyDueTransactions(Stage primaryStage) {
 	    try {
 	        List<ScheduledTransaction> dueTransactions = ScheduledTransaction.getDueTransactions();
 	        if (!dueTransactions.isEmpty()) {
-	            Alert alert = new Alert(AlertType.INFORMATION);
-	            alert.setTitle("Scheduled Transactions Due");
-	            alert.setHeaderText("Transactions due today:");
-	            StringBuilder message = new StringBuilder();
+	            VBox contentLayout = new VBox(10);
+	            contentLayout.setPadding(new Insets(10));
+
+	            Text title = new Text("Scheduled Transactions Due Today");
+	            title.setStyle("-fx-font-size: 20; -fx-font-weight: bold;");
+	            contentLayout.getChildren().add(title);
+
 	            for (ScheduledTransaction st : dueTransactions) {
-	                message.append("- ").append(st.getName())
-	                       .append(" (Account: ").append(st.getAccount())
-	                       .append(", Amount: $").append(st.getPayAmount())
-	                       .append(")\n");
+	                Text transactionDetails = new Text(
+	                    "- Name: " + st.getName() + "\n" +
+	                    "  Account: " + st.getAccount() + "\n" +
+	                    "  Amount: $" + st.getPayAmount() + "\n" +
+	                    "  Due Date: " + st.getDueDate() + "\n"
+	                );
+	                transactionDetails.setStyle("-fx-font-size: 14;");
+	                contentLayout.getChildren().add(transactionDetails);
 	            }
-	            alert.setContentText(message.toString());
-	            alert.showAndWait();
+
+	            // Wrap content in a ScrollPane
+	            ScrollPane scrollPane = new ScrollPane(contentLayout);
+	            scrollPane.setFitToWidth(true);
+	            scrollPane.setPadding(new Insets(10));
+
+	            VBox layout = new VBox(10, scrollPane);
+	            layout.setPadding(new Insets(10));
+	            layout.setAlignment(Pos.CENTER_LEFT);
+
+	            Button closeButton = new Button("Close");
+	            closeButton.setOnAction(e -> {
+	                Stage stage = (Stage) closeButton.getScene().getWindow();
+	                stage.close();
+	            });
+	            layout.getChildren().add(closeButton);
+
+	            Scene scene = new Scene(layout, 450, 400); // Adjusted size for better fit
+	            Stage alertStage = new Stage();
+	            alertStage.setScene(scene);
+	            alertStage.setTitle("Due Transactions");
+	            alertStage.initOwner(primaryStage);
+	            alertStage.show();
 	        }
 	    } catch (IOException e) {
 	        System.err.println("Error retrieving due transactions: " + e.getMessage());
 	    }
 	}
+
 
 	private void backToHomePage(Stage primary) {
 		HomePage hp = new HomePage();
@@ -1072,30 +1106,155 @@ public class HomePage extends Application {
 			System.out.println("No accounts yet");
 		}
 
-		
-		
-
 		dateCol.setSortType(TableColumn.SortType.DESCENDING);
 		table.getSortOrder().add(dateCol);
+		
+		table.setOnMouseClicked(event -> {
+	        if (event.getClickCount() == 2 && !table.getSelectionModel().isEmpty()) {
+	            Transaction selectedTransaction = table.getSelectionModel().getSelectedItem();
+	            displayTransactionDetailsPage(selectedTransaction);
+	        }
+	    });
 
-		accReportPage.setTop(searchContainer);
-		accReportPage.setCenter(table);
+	    accReportPage.setTop(searchContainer);
+	    accReportPage.setCenter(table);
 
-		back.setOnAction(e -> backToHomePage(primary));
+	    back.setOnAction(e -> backToHomePage(primary));
 
-		VBox bottomContent = new VBox(back);
-		bottomContent.setAlignment(Pos.CENTER);
-		bottomContent.setPadding(new Insets(15));
-		accReportPage.setBottom(bottomContent);
+	    VBox bottomContent = new VBox(back);
+	    bottomContent.setAlignment(Pos.CENTER);
+	    bottomContent.setPadding(new Insets(15));
+	    accReportPage.setBottom(bottomContent);
 
-		Scene transactionScene = new Scene(accReportPage, 1280, 800);
-		primary.setScene(transactionScene);
-		primary.show();
+	    Scene transactionScene = new Scene(accReportPage, 1280, 800);
+	    primary.setScene(transactionScene);
+	    primary.show();
 	}
 	
-	private void displayTTReportPage(Stage primary) {
-		
+	private void displayTransactionDetailsPage(Transaction transaction) {
+	    Stage detailsStage = new Stage();
+
+	    VBox contentLayout = new VBox(10);
+	    contentLayout.setPadding(new Insets(20));
+
+	    Text title = new Text("Transaction Details");
+	    title.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
+	    contentLayout.getChildren().add(title);
+
+	    Text accountDetails = new Text("Account Name: " + transaction.getAccount());
+	    Text typeDetails = new Text("Transaction Type: " + transaction.getTransactionType());
+	    Text dateDetails = new Text("Transaction Date: " + transaction.getTransactionDate());
+	    Text descDetails = new Text("Description: " + transaction.getDescription());
+	    Text paymentDetails = new Text("Payment Amount: $" + transaction.getPaymentAmount());
+	    Text depositDetails = new Text("Deposit Amount: $" + transaction.getDepositAmount());
+
+	    accountDetails.setStyle("-fx-font-size: 14;");
+	    typeDetails.setStyle("-fx-font-size: 14;");
+	    dateDetails.setStyle("-fx-font-size: 14;");
+	    descDetails.setStyle("-fx-font-size: 14;");
+	    paymentDetails.setStyle("-fx-font-size: 14;");
+	    depositDetails.setStyle("-fx-font-size: 14;");
+
+	    contentLayout.getChildren().addAll(accountDetails, typeDetails, dateDetails, descDetails, paymentDetails, depositDetails);
+
+	    Button backButton = new Button("Back");
+	    backButton.setOnAction(e -> detailsStage.close());
+	    contentLayout.getChildren().add(backButton);
+
+	    Scene detailsScene = new Scene(contentLayout, 400, 300);
+	    detailsStage.setScene(detailsScene);
+	    detailsStage.setTitle("Transaction Details");
+	    detailsStage.show();
 	}
+
+	
+	private void displayTTReportPage(Stage primary) {
+	    BorderPane ttReportPage = new BorderPane();
+	    ComboBox<String> ttDropDown;
+	    VBox searchContainer = null;
+
+	    Button back = new Button("Home");
+	    back.setMinSize(50, 10);
+
+	    TableView<Transaction> table = new TableView<>();
+
+	    TableColumn<Transaction, String> accountCol = new TableColumn<>("Account Name");
+	    accountCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getAccount()));
+
+	    TableColumn<Transaction, String> dateCol = new TableColumn<>("Transaction Date");
+	    dateCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTransactionDate().toString()));
+
+	    TableColumn<Transaction, String> descCol = new TableColumn<>("Description");
+	    descCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getDescription()));
+
+	    TableColumn<Transaction, Double> paymentCol = new TableColumn<>("Payment Amount");
+	    paymentCol.setCellValueFactory(data -> new SimpleDoubleProperty(data.getValue().getPaymentAmount()).asObject());
+
+	    TableColumn<Transaction, Double> depositCol = new TableColumn<>("Deposit Amount");
+	    depositCol.setCellValueFactory(data -> new SimpleDoubleProperty(data.getValue().getDepositAmount()).asObject());
+
+	    // Add columns in the desired order: Account, Date, Description, Payment, Deposit
+	    table.getColumns().addAll(accountCol, dateCol, descCol, paymentCol, depositCol);
+
+	    try {
+	        List<String> ttNames = TransactionType.getAllTransactionTypes(); // Assuming this method returns all transaction types
+	        ObservableList<String> transactionTypeList = FXCollections.observableList(ttNames);
+	        ttDropDown = new ComboBox<>(transactionTypeList);
+
+	        List<Transaction> transactions = Transaction.getAllTransactions();
+	        ObservableList<Transaction> transactionList = FXCollections.observableList(transactions);
+	        table.setItems(transactionList);
+
+	        ttDropDown.setOnAction(e -> {
+	            List<Transaction> filterTransactions = new ArrayList<>();
+	            String selectedType = ttDropDown.getValue();
+	            if (selectedType.isEmpty()) {
+	                table.setItems(transactionList);
+	                return;
+	            }
+	            for (Transaction tran : transactions) {
+	                if (tran.getTransactionType().equalsIgnoreCase(selectedType)) {
+	                    filterTransactions.add(tran);
+	                }
+	            }
+
+	            ObservableList<Transaction> filterList = FXCollections.observableList(filterTransactions);
+	            table.setItems(filterList);
+	        });
+
+	        Label ttChooseLabel = new Label("Choose Transaction Type:");
+	        searchContainer = new VBox(ttChooseLabel, ttDropDown);
+	    } catch (IOException e) {
+	        System.out.println("No transaction types yet");
+	    }
+
+	    dateCol.setSortType(TableColumn.SortType.DESCENDING);
+	    table.getSortOrder().add(dateCol);
+
+	    table.setOnMouseClicked(event -> {
+	        if (event.getClickCount() == 2 && !table.getSelectionModel().isEmpty()) {
+	            Transaction selectedTransaction = table.getSelectionModel().getSelectedItem();
+	            displayTransactionDetailsPage(selectedTransaction);
+	        }
+	    });
+
+	    ttReportPage.setTop(searchContainer);
+	    ttReportPage.setCenter(table);
+
+	    back.setOnAction(e -> backToHomePage(primary));
+
+	    VBox bottomContent = new VBox(back);
+	    bottomContent.setAlignment(Pos.CENTER);
+	    bottomContent.setPadding(new Insets(15));
+	    ttReportPage.setBottom(bottomContent);
+
+	    Scene transactionScene = new Scene(ttReportPage, 1280, 800);
+	    primary.setScene(transactionScene);
+	    primary.show();
+	}
+
+
+
 	
 	private TextField createTextField(VBox layout, String label, String value) {
 	    Label fieldLabel = new Label(label);
