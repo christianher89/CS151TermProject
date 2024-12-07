@@ -24,5 +24,21 @@ public class TransactionType {
             out.println(newType.getName());
         }
     }
+    
+    public static List<String> getAllTransactionTypes() throws IOException {
+        File typesFile = new File("TransactionTypes.csv");
+        List<String> typeNames = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(typesFile))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                typeNames.add(line);
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("No transaction types file found.");
+        }
+
+        return typeNames;
+    }
 
 }
